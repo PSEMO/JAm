@@ -4,8 +4,8 @@ const {vec2, rgb} = LJS;
 //#region Constants
 
 // Screen
-const SCREEN_WIDTH = 1280;
-const SCREEN_HEIGHT = 720;
+const SCREEN_WIDTH = 1920;
+const SCREEN_HEIGHT = 1080;
 
 // Camera
 const CAMERA_SMOOTHNESS = 0.05;
@@ -37,7 +37,9 @@ const DASH_BAR_BG_COLOR = 'rgba(50, 50, 50, 0.8)';
 const DASH_BAR_FILL_COLOR = 'rgba(0, 150, 255, 0.9)';
 const DASH_BAR_STROKE_COLOR = 'rgba(255, 255, 255, 0.9)';
 const DASH_BAR_LINE_WIDTH = 2;
-const UNLOCK_MESSAGE_DURATION = 6;
+const UNLOCK_MESSAGE_DURATION = 4;
+const YOU_WON_MESSAGE_DURATION = 999;
+const CHECKPOINT_MESSAGE_DURATION = 2;
 
 // Other
 const GAME_END_POS_X = 790;
@@ -50,6 +52,10 @@ const JUMPER_BOUNCE_FACTOR = -0.85;
 const JUMPER_MIN_BOUNCE_VELOCITY_SQ = 0.01;
 const JUMPER_POSITION_ADJUST_ON_BOUNCE = 1;
 
+//#endregion
+
+
+
 
 //#region Global Vars
 
@@ -59,14 +65,14 @@ var player;
 let playerIdle, playerRun, playerJump, playerSlam, playerDash;
 
 //TODO CHANGE BEFORE RELEASE
-//var canDash = true;
-//var canSmash = true;
-//var canClimb = true;
-//var maxJumps = 99;
 var canDash = false;
 var canSmash = false;
 var canClimb = false;
 var maxJumps = 1;
+//var canDash = true;
+//var canSmash = true;
+//var canClimb = true;
+//var maxJumps = 99;
 
 var touchingClimbable = false;
 
@@ -74,6 +80,17 @@ var bg1, bg2;
 
 let unlockMessageTimer;
 var messageToDisplayAtUnlock;
+
+var checkpoints = [];
+var lastCheckpoint;
+var lastCheckpointIndex = 0;
+
+var resettableObjectTemplates = [];
+
+//#endregion
+
+
+
 
 //#region Functions
 
@@ -230,11 +247,11 @@ function moveBackground()
     }
 }
 
-function setUnlockMessage(text)
+function createMessage(text, duration)
 {
     unlockMessageTimer = new LJS.Timer();
     messageToDisplayAtUnlock = text;
-    unlockMessageTimer.set(UNLOCK_MESSAGE_DURATION);
+    unlockMessageTimer.set(duration);
 }
 
 function displayMessage()
@@ -283,9 +300,20 @@ function deathTracker()
 
 function die()
 {
-    //using a variable here does not for for some reason
-    player.pos = vec2(0, 1.5);
+    player.pos = lastCheckpoint.copy();
+    LJS.setCameraPos(lastCheckpoint.copy());
     player.velocity = vec2(0, 0);
+
+    for (let i = LJS.engineObjects.length - 1; i >= 0; i--) {
+        const obj = LJS.engineObjects[i];
+        if (obj.isResettable) {
+            obj.destroy();
+        }
+    }
+
+    resettableObjectTemplates.forEach(template => {
+        new template.constructor(template.pos, template.size);
+    });
 }
 
 function checkGameEnd()
@@ -295,11 +323,70 @@ function checkGameEnd()
 
 function triggerGameEnd()
 {
-    setUnlockMessage("You Won!");
+    createMessage("You Won!", YOU_WON_MESSAGE_DURATION);
     displayMessage();
 }
 
+function checkCheckpoints() {
+    for (let i = lastCheckpointIndex + 1; i < checkpoints.length; i++) {
+        const checkpoint = checkpoints[i];
+        if (player.pos.x > checkpoint.x) {
+            lastCheckpoint = checkpoint;
+            lastCheckpointIndex = i;
+            if(i !== 0)
+            {
+                createMessage("Checkpoint Acquired",
+                    CHECKPOINT_MESSAGE_DURATION);
+            }
+            break;
+        }
+    }
+}
+
 function createLevel()
+{
+    setBackground();
+
+    //TODO CHANGE BEFORE RELEASE
+    player = new Player(vec2(0, 1.5), vec2(1, 1));
+    //player = new Player(vec2(536, 4), vec2(1, 1));
+
+    createBlocks();
+    setCheckPoints();
+    setResettableObjectTemplates();
+}
+
+function setCheckPoints()
+{
+    checkpoints = [
+        vec2(0, 1.5), 
+        vec2(85, 5.5),
+        vec2(230, 1.5),
+        vec2(330, 1.5),
+        vec2(470, 12.5),
+        vec2(536, 4),
+        vec2(560, 12.5),
+        vec2(680, 1.5)
+    ];
+    lastCheckpoint = checkpoints[0].copy();
+    lastCheckpointIndex = 0;
+}
+
+function setResettableObjectTemplates()
+{
+    resettableObjectTemplates = [];
+    LJS.engineObjects.forEach(obj => {
+        if (obj.isResettable) {
+            resettableObjectTemplates.push({
+                constructor: obj.constructor,
+                pos: obj.initialPos.copy(),
+                size: obj.initialSize.copy()
+            });
+        }
+    });
+}
+
+function createBlocks()
 {
     //new Ground(vec2(0, 0), vec2(0, 0));
     //new HalfBlock(vec2(0, 0), vec2(0, 0));
@@ -312,12 +399,6 @@ function createLevel()
     //new ClimbGiver(vec2(0, 0));
     //new SmashGiver(vec2(0, 0));
     //new DoubleJumpGiver(vec2(0, 0));
-
-    setBackground();
-
-    //TODO CHANGE BEFORE RELEASE
-    player = new Player(vec2(0, 1.5), vec2(1, 1));
-    //player = new Player(vec2(536, 4), vec2(1, 1));
 
     // Start
     new Ground(vec2(0, 0), vec2(19, 1));
@@ -466,8 +547,13 @@ function createLevel()
 
     //platform later on
     new Ground(vec2(770, 0), vec2(43, 1));
-    new BreakableBlock(vec2(770, 10.5), vec2(1, 20))
+    new BreakableBlock(vec2(770, 10.5), vec2(1, 20));
 }
+
+//#endregion
+
+
+
 
 //#region Classes
 
@@ -505,7 +591,20 @@ class Block extends Barrier
     }
 }
 
-class BreakableBlock extends Barrier
+class Disappears extends Barrier
+{
+    //size is here to prevent null.copy()
+    //for other classes it is set later at the engine level
+    constructor(pos, size = vec2(1, 1))
+    {
+        super(pos, size);
+        this.isResettable = true;
+        this.initialPos = pos.copy();
+        this.initialSize = size.copy();
+    }
+}
+
+class BreakableBlock extends Disappears
 {
     constructor(pos, size)
     {
@@ -529,7 +628,7 @@ class BreakableBlock extends Barrier
     }
 }
 
-class Box extends Barrier
+class Box extends Disappears
 {
     constructor(pos, size, mass = size.x + size.y)
     {
@@ -542,7 +641,7 @@ class Box extends Barrier
     }
 }
 
-class SBox extends Box
+class SBox extends Disappears
 {
     constructor(pos, size, mass = size.x + size.y)
     {
@@ -555,7 +654,7 @@ class SBox extends Box
     }
 }
 
-class Giver extends Barrier
+class Giver extends Disappears
 {
     constructor(pos, size)
     {
@@ -778,32 +877,36 @@ class Player extends LJS.EngineObject
             {
                 obj.destroy();
                 canDash = true;
-                setUnlockMessage("You unlocked a new skill!\n" + 
-                    "\"Left Shift\" to Dash");
+                createMessage("You unlocked a new skill!\n" + 
+                    "\"Left Shift\" to Dash",
+                    UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
             else if(obj.tag == "doubleJumpGiver")
             {
                 obj.destroy();
                 maxJumps = 2;
-                setUnlockMessage("You unlocked a new skill!\n" + 
-                    "\"W\" to Double Jump");
+                createMessage("You unlocked a new skill!\n" + 
+                    "\"W\" to Double Jump",
+                    UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
             else if(obj.tag == "climbGiver")
             {
                 obj.destroy();
                 canClimb = true;
-                setUnlockMessage("You unlocked a new skill!\n" + 
-                    "\"W\" at a purple wall to Wall Jump");
+                createMessage("You unlocked a new skill!\n" + 
+                    "\"W\" at a purple wall to Wall Jump",
+                    UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
             else if(obj.tag == "smashGiver")
             {
                 obj.destroy();
                 canSmash = true;
-                setUnlockMessage("You unlocked a new skill!\n" + 
-                    "\"S\" while on air to Smash!");
+                createMessage("You unlocked a new skill!\n" + 
+                    "\"S\" while on air to Smash!",
+                    UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
             else if (obj.tag == "climbable")
@@ -886,6 +989,11 @@ class Player extends LJS.EngineObject
     }
 }
 
+//#endregion
+
+
+
+
 //#region Engine funcs
 
 function gameInit()
@@ -900,7 +1008,8 @@ function gameInit()
 
     createLevel();
 
-    setUnlockMessage("\"W\" \"A\" \"D\" or Arrow Keys to Move");
+    createMessage("\"W\" \"A\" \"D\" or Arrow Keys to Move",
+                    UNLOCK_MESSAGE_DURATION);
 }
 
 function gameUpdate()
@@ -920,10 +1029,12 @@ function gameUpdate()
     var dashKeyDown = LJS.keyWasPressed("ShiftLeft");
     dash(dashKeyDown, player);
 
-    var downKeyDown = LJS.keyWasPressed('KeyS') || LJS.keyWasPressed('ArrowDown');
+    var downKeyDown = LJS.keyWasPressed('ArrowDown');
     groundSlam(downKeyDown, player);
 
     deathTracker();
+
+    checkCheckpoints();
 
     camControl();
 
@@ -944,7 +1055,13 @@ function gameRenderPost()
     displayMessage();
 }
 
+//#endregion
+
+
+
+
 //#region Init
+
 LJS.engineInit(
     gameInit,
     gameUpdate,
@@ -952,3 +1069,5 @@ LJS.engineInit(
     gameRender,
     gameRenderPost,
     ['tiles.png', 'background.png']);
+
+//#endregion
