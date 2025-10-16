@@ -24,8 +24,8 @@ const DASH_COOLDOWN = 1.5;
 const SLAM_VELOCITY = -0.7;
 const SLAM_SHOCKWAVE_RADIUS = 5;
 const SLAM_SHOCKWAVE_FORCE = 0.2;
-const PLAYER_GROWTH_FACTOR = 20;
-const PLAYER_POSITION_ADJUST_ON_GROW = 0.01;
+const PLAYER_GROWTH_MULTIPLIER = 2;
+const PLAYER_POS_ADj_ON_GROW = 0.25;
 const PLAYER_ANIM_FRAME_RATE = 10;
 const PLAYER_SPRITE_TILE_SIZE = 25;
 
@@ -53,10 +53,10 @@ const JUMPER_MIN_BOUNCE_VELOCITY_SQ = 0.01;
 const JUMPER_POSITION_ADJUST_ON_BOUNCE = 1;
 
 //#endregion
-
-
-
-
+//-
+//--
+//--
+//-
 //#region Global Vars
 
 var screenSize = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -88,10 +88,10 @@ var lastCheckpointIndex = 0;
 var resettableObjectTemplates = [];
 
 //#endregion
-
-
-
-
+//-
+//--
+//--
+//-
 //#region Functions
 
 function keyJustDirection(
@@ -108,13 +108,14 @@ function walk(input, player)
 {
     if(player.isDashing == false)
     {
+        const currentWalkSpeed = WALK_SPEED * player.size.x;
         if(input.x > 0)
         {
-            player.velocity = vec2(WALK_SPEED, player.velocity.y);
+            player.velocity = vec2(currentWalkSpeed, player.velocity.y);
         }
         else if(input.x < 0)
         {
-            player.velocity = vec2(-WALK_SPEED, player.velocity.y);
+            player.velocity = vec2(-currentWalkSpeed, player.velocity.y);
         }
         else
         {
@@ -137,13 +138,16 @@ function jump(input, player)
 
         if (input.y > 0 && player.jumpCount > 0)
         {
-            if (player.velocity.y < JUMP_VELOCITY)
+            const sizeMult = player.size.x < 1? 0.5: 1;
+            const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
+            const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
+            if (player.velocity.y < currentJumpVelocity)
             {
-                player.velocity.y = JUMP_VELOCITY;
+                player.velocity.y = currentJumpVelocity;
             }
             else
             {
-                player.velocity.y += JUMP_BOOST_VELOCITY;
+                player.velocity.y += currentJumpBoost;
             }
             player.jumpCount -= 1
         }
@@ -168,8 +172,8 @@ function dash(dashPressed, player)
         {
             dashDirection = vec2(player.mirror ? -1 : 1, 0);
         }
-
-        player.velocity = dashDirection.normalize(DASH_SPEED);
+        const currentDashSpeed = DASH_SPEED * player.size.x;
+        player.velocity = dashDirection.normalize(currentDashSpeed);
 
         player.gravityScale = 0;
     }
@@ -191,7 +195,33 @@ function groundSlam(slamPressed, player)
     {
         player.isSlamming = true;
         player.canSlam = false;
-        player.velocity.y = SLAM_VELOCITY;
+        player.velocity.y = SLAM_VELOCITY * player.size.x;
+    }
+}
+
+function changePlayerSize(toBigger, obj)
+{
+    if(toBigger)
+    {
+        player.size.x *= PLAYER_GROWTH_MULTIPLIER;
+        player.size.y *= PLAYER_GROWTH_MULTIPLIER;
+        
+        player.pos.y += (PLAYER_POS_ADj_ON_GROW +
+        (PLAYER_POS_ADj_ON_GROW / 10));
+        
+        player.mass = player.size.x + player.size.y
+        obj.destroy()
+    }
+    else
+    {
+        player.size.x /= PLAYER_GROWTH_MULTIPLIER;
+        player.size.y /= PLAYER_GROWTH_MULTIPLIER;
+        
+        player.pos.y -= (PLAYER_POS_ADj_ON_GROW -
+        (PLAYER_POS_ADj_ON_GROW / 10));
+        
+        player.mass = player.size.x + player.size.y
+        obj.destroy()
     }
 }
 
@@ -290,6 +320,7 @@ function drawDashBar()
     }
 }
 
+
 function deathTracker()
 {
     if(player.pos.y < -23)
@@ -364,7 +395,6 @@ function setCheckPoints()
         vec2(230, 1.5),
         vec2(330, 1.5),
         vec2(470, 12.5),
-        vec2(536, 4),
         vec2(560, 12.5),
         vec2(680, 1.5)
     ];
@@ -432,6 +462,7 @@ function createBlocks()
     new Ground(vec2(73, 4), vec2(31, 1));
     new SBox(vec2(66, 5), vec2(1, 1));
     new Ground(vec2(75, 13), vec2(15, 15));
+    new Box(vec2(85, 6), vec2(1, 1));
 
     // 3 wide blocks with space between them
     new HalfBlock(vec2(94, 4), vec2(3, 1));
@@ -496,12 +527,8 @@ function createBlocks()
     new Ground(vec2(402.75, -10.75), vec2(23.5, 23.5));
     new Ground(vec2(430, -10), vec2(15, 15));
     new Ground(vec2(460, 0), vec2(25, 23.5));
-    new SBox(vec2(450, 12.5), vec2(1, 1));
-    new SBox(vec2(451.5, 12.5), vec2(1, 1));
     new SBox(vec2(453, 12.5), vec2(1, 1));
     new Box(vec2(469, 12.5), vec2(1, 1));
-    new Box(vec2(470, 12.5), vec2(1, 1));
-    new Box(vec2(469.5, 14), vec2(1, 1));
     new Ground(vec2(460, 17.5), vec2(10, 10));
     new Climbable(vec2(447, 0), vec2(1, 23.5));
 
@@ -551,10 +578,10 @@ function createBlocks()
 }
 
 //#endregion
-
-
-
-
+//-
+//--
+//--
+//-
 //#region Classes
 
 class Background extends LJS.EngineObject
@@ -628,7 +655,7 @@ class BreakableBlock extends Disappears
     }
 }
 
-class Box extends Disappears
+class Box extends Barrier
 {
     constructor(pos, size, mass = size.x + size.y)
     {
@@ -641,7 +668,7 @@ class Box extends Disappears
     }
 }
 
-class SBox extends Disappears
+class SBox extends Box
 {
     constructor(pos, size, mass = size.x + size.y)
     {
@@ -929,30 +956,11 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "box")
             {
-                var increase = (obj.size.x + obj.size.y) / PLAYER_GROWTH_FACTOR;
-                this.size.x += increase;
-                this.size.y += increase;
-                
-                this.pos.y += increase / 2 + PLAYER_POSITION_ADJUST_ON_GROW;
-                
-                this.mass = this.size.x + this.size.y
-                obj.destroy()
-
-                return 0;
+                changePlayerSize(true, obj);
             }
             else if(obj.tag == "sbox")
-            { 
-                var increase = (
-                    (obj.size.x + obj.size.y) / PLAYER_GROWTH_FACTOR) * -1;
-                this.size.x += increase;
-                this.size.y += increase;
-                
-                this.pos.y -= increase / 2 - PLAYER_POSITION_ADJUST_ON_GROW;
-                
-                this.mass = this.size.x + this.size.y
-                obj.destroy()
-
-                return 0;
+            {
+                changePlayerSize(false, obj);
             }
             else if(obj.tag == "jumper")
             {
@@ -990,10 +998,10 @@ class Player extends LJS.EngineObject
 }
 
 //#endregion
-
-
-
-
+//-
+//--
+//--
+//-
 //#region Engine funcs
 
 function gameInit()
@@ -1056,10 +1064,10 @@ function gameRenderPost()
 }
 
 //#endregion
-
-
-
-
+//-
+//--
+//--
+//-
 //#region Init
 
 LJS.engineInit(
