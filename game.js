@@ -4,8 +4,8 @@ const {vec2, rgb} = LJS;
 //#region Constants
 
 // Screen
-const SCREEN_WIDTH = 1920;
-const SCREEN_HEIGHT = 1080;
+const SCREEN_WIDTH = 1280;
+const SCREEN_HEIGHT = 720;
 
 // Camera
 const CAMERA_SMOOTHNESS = 0.05;
