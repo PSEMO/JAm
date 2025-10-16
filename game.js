@@ -443,11 +443,6 @@ function createBlocks()
     //new SmashGiver(vec2(0, 0));
     //new DoubleJumpGiver(vec2(0, 0));
 
-    new HoldGiver(vec2(0, 2.5), vec2(1, 1));
-    new Holdable(vec2(-4, 5), vec2(1, 1));
-    new Holdable(vec2(0, 5), vec2(1, 1));
-    new Holdable(vec2(4, 5), vec2(1, 1));
-
     // Start
     new Ground(vec2(0, 0), vec2(19, 1));
     
