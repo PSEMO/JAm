@@ -69,10 +69,10 @@ var canDash = false;
 var canSmash = false;
 var canClimb = false;
 var maxJumps = 1;
-//var canDash = true;
-//var canSmash = true;
-//var canClimb = true;
-//var maxJumps = 99;
+var canDash = true;
+var canSmash = true;
+var canClimb = true;
+var maxJumps = 99;
 
 var touchingClimbable = false;
 
@@ -128,7 +128,6 @@ function jump(input, player)
 {
     if(player.isDashing == false)
     {
-        //disables falling and jumping the normal ammount
         if(!player.groundObject &&
             player.jumpCount == maxJumps &&
             !touchingClimbable)
@@ -320,7 +319,6 @@ function drawDashBar()
     }
 }
 
-
 function deathTracker()
 {
     if(player.pos.y < -23)
@@ -433,6 +431,10 @@ function createBlocks()
     // Start
     new Ground(vec2(0, 0), vec2(19, 1));
     
+    new Grapable(vec2(-4, 5), vec2(1, 1));
+    new Grapable(vec2(0, 5), vec2(1, 1));
+    new Grapable(vec2(+4, 5), vec2(1, 1));
+
     // Staircase
     new Ground(vec2(6, 1), vec2(1, 1));
     new Ground(vec2(7, 2), vec2(1, 1));
@@ -801,6 +803,18 @@ class Climbable extends Barrier
     }
 }
 
+class Grapable extends Barrier
+{
+    constructor(pos, size)
+    {
+        super(pos, size);
+            
+        this.color = new LJS.Color(0.5, 0.5, 0);
+
+        this.tag = "grapable";
+    }
+}
+
 class Player extends LJS.EngineObject
 {
     constructor(pos, size = vec2(1,1))
@@ -945,6 +959,33 @@ class Player extends LJS.EngineObject
                 {
                     this.jumpCount = 1;
                 }
+            }
+            else if (obj.tag == "grapable")
+            {
+                const walkInput = LJS.keyDirection();
+                const jumpInput = LJS.keyWasPressed('ArrowUp') ||
+                LJS.keyWasPressed('KeyW');
+                const dashInput = LJS.keyWasPressed("ShiftLeft");
+                const smashInput = LJS.keyWasPressed('ArrowDown') ||
+                LJS.keyWasPressed('KeyS');
+                const movementKeyPressed = walkInput.lengthSquared() > 0 || jumpInput || dashInput || smashInput;
+
+                if (!movementKeyPressed)
+                {
+                    this.pos = obj.pos.copy();
+                    this.gravityScale = 0;
+                    this.velocity = vec2(0, 0);
+                    if (maxJumps > 1)
+                    {
+                        this.jumpCount = 1;
+                    }
+                }
+                else
+                {
+                    this.gravityScale = 1;
+                }
+                
+                return 0;
             }
             else if (obj.tag == "breakableBlock")
             {
