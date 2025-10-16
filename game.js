@@ -202,16 +202,6 @@ function groundSlam(slamPressed, player)
     }
 }
 
-function isholding(holdingPressed, player, obj)
-{
-    if(holdingPressed && ableToHold)
-    {
-        player.pos = obj.pos.copy();
-        player.velocity = vec2(0, 0);
-        player.jumpCount = 1;
-    }
-}
-
 function changePlayerSize(toBigger, obj)
 {
     if(toBigger)
@@ -859,6 +849,9 @@ class Player extends LJS.EngineObject
         this.dashtimer = new LJS.Timer;
         this.dashCooldownTimer = new LJS.Timer;
 
+        this.isMovingToHoldable = false;
+        this.holdableTarget = null;
+
         this.tileInfo = playerIdle;
         this.animTimer = new LJS.Timer();
         this.animTimer.set();
@@ -874,6 +867,26 @@ class Player extends LJS.EngineObject
     {
         //messy but works
         touchingClimbable = false;
+
+        if (this.isMovingToHoldable) {
+            if (this.holdableTarget && LJS.keyIsDown("KeyE") && ableToHold) {
+                const HOLD_LERP_SPEED = 0.2; // How fast player moves to the holdable
+                this.gravityScale = 0; // Disable gravity
+                this.velocity = vec2(0, 0); // Stop movement from other sources
+                this.pos = this.pos.lerp(this.holdableTarget.pos, HOLD_LERP_SPEED);
+                
+                // Once close enough, snap to position and allow a jump
+                if (this.pos.distance(this.holdableTarget.pos) < 0.1) {
+                    this.pos = this.holdableTarget.pos.copy();
+                    this.jumpCount = 1;
+                }
+            } else {
+                // Stop holding if key is released or target is gone
+                this.isMovingToHoldable = false;
+                this.holdableTarget = null;
+                this.gravityScale = 1; // Re-enable gravity
+            }
+        }
 
         super.update();
 
@@ -923,7 +936,7 @@ class Player extends LJS.EngineObject
             var slammed = false;
 
             if(this.isSlamming && 
-               (obj.tag == "ground" || obj.tag == "box" || obj.tag == "jumper" || 
+                (obj.tag == "ground" || obj.tag == "box" || obj.tag == "jumper" || 
                 obj.tag == "breaks" || obj.tag == "breakableBlock" || obj.tag == "climbable"))
             {
                 slammed = true;
@@ -1017,8 +1030,12 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "holdable")
             {
-                isholding(LJS.keyIsDown("KeyE"), this, obj);
-
+                if (LJS.keyIsDown("KeyE") && ableToHold) {
+                    if (!this.isMovingToHoldable) {
+                        this.isMovingToHoldable = true;
+                        this.holdableTarget = obj;
+                    }
+                }
                 return 0;
             }
             else if(obj.tag == "jumper")
@@ -1079,7 +1096,7 @@ function gameInit()
     createLevel();
 
     createMessage("\"W\" \"A\" \"D\" or Arrow Keys to Move",
-                    UNLOCK_MESSAGE_DURATION);
+        UNLOCK_MESSAGE_DURATION);
 }
 
 function gameUpdate()
