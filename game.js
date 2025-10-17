@@ -382,12 +382,12 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5), vec2(1, 1));
-    player = new Player(vec2(785, 2), vec2(1, 1));
-    ableToDash = true;
-    ableToSmash = true;
-    ableToClimb = true;
-    ableToHold = true;
-    maxJumps = 99;
+    //player = new Player(vec2(785, 2), vec2(1, 1));
+    //ableToDash = true;
+    //ableToSmash = true;
+    //ableToClimb = true;
+    //ableToHold = true;
+    //maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -1046,7 +1046,7 @@ class Player extends LJS.EngineObject
                 this.velocity.y = this.velocity.y * JUMPER_BOUNCE_FACTOR;
                 
                 //KNOWN BUG
-                //we are not under it might be at its side and this will trigger
+                //we are not under it but might be at its side and this will trigger
                 if(this.velocity.y * this.velocity.y > JUMPER_MIN_BOUNCE_VELOCITY_SQ &&
                     !(this.pos.y <= obj.pos.y)) 
                 {
@@ -1065,8 +1065,10 @@ class Player extends LJS.EngineObject
                     return 0;
                 }
 
+                //KNOWN BUG
+                //we are not under it but might be at its side and this will trigger
                 if (!obj.breakTimer.active() && !obj.breakTimer.elapsed() &&
-                this.velocity.y * this.velocity.y < 0.01)
+                this.velocity.y * this.velocity.y < 0.01 && !(this.pos.y <= obj.pos.y))
                 {
                     obj.breakTimer.set(HALF_BLOCK_BREAK_DELAY);
                 }
