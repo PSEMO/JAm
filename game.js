@@ -605,8 +605,8 @@ class Background extends LJS.EngineObject
 {
     constructor(pos)
     {
-        const tileInfo = new LJS.TileInfo(vec2(0,0), vec2(750, 500), 1);
-        super(pos, vec2(45, 30), tileInfo);
+        const tileInfo = new LJS.TileInfo(vec2(0,-10), vec2(750, 750), 1);
+        super(pos, vec2(45, 45), tileInfo);
         this.renderOrder = -1; // Render behind all other objects
     }
 }
