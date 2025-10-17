@@ -70,7 +70,7 @@ var ableToDash = false;
 var ableToSmash = false;
 var ableToClimb = false;
 var ableToHold = false;
-var maxJumps = 2;
+var maxJumps = 1;
 //var ableToDash = true;
 //var ableToSmash = true;
 //var ableToClimb = true;
@@ -387,7 +387,7 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5), vec2(1, 1));
-    player = new Player(vec2(785, 2), vec2(1, 1));
+    //player = new Player(vec2(785, 2), vec2(1, 1));
 }
 
 function setCheckPoints()
