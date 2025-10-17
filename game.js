@@ -854,6 +854,34 @@ class Player extends LJS.EngineObject
         this.tileInfo = playerIdle;
         this.animTimer = new LJS.Timer();
         this.animTimer.set();
+
+        // Sets to track objects the player is colliding with
+        this.collidingObjects = new Set();
+        this.lastCollidingObjects = new Set();
+    }
+
+    /**
+     * This function is triggered when a new collision starts.
+     * @param {LJS.EngineObject} obj The object the player has started colliding with.
+     */
+    onCollisionStart(obj)
+    {
+        if(obj.tag == "holdable")
+        {
+            this.isHolding = true;
+        }
+    }
+
+    /**
+     * This function is triggered when a collision ends.
+     * @param {LJS.EngineObject} obj The object the player has stopped colliding with.
+     */
+    onCollisionEnd(obj)
+    {
+        if(obj.tag == "holdable")
+        {
+            this.isHolding = false;
+        }
     }
 
     SetLandedParameters()
@@ -866,8 +894,11 @@ class Player extends LJS.EngineObject
     {
         //messy but works
         touchingClimbable = false;
-
-        super.update();
+        
+        // Prepare for the new frame's collision checks by moving the current
+        // colliding objects to the "last" set, then clearing the current set.
+        this.lastCollidingObjects = this.collidingObjects;
+        this.collidingObjects = new Set();
 
         if (player.groundObject)
         {
@@ -906,10 +937,29 @@ class Player extends LJS.EngineObject
         if (this.velocity.x !== 0 && !this.isDashing) {
             this.mirror = this.velocity.x < 0;
         }
+
+        super.update(); // This will call collideWithObject and populate the new collidingObjects set.
+
+        // Check for new collisions that have started in this frame
+        for (const obj of this.collidingObjects) {
+            if (!this.lastCollidingObjects.has(obj)) {
+                this.onCollisionStart(obj);
+            }
+        }
+
+        // Check for collisions that have ended in this frame
+        for (const obj of this.lastCollidingObjects) {
+            if (!this.collidingObjects.has(obj)) {
+                this.onCollisionEnd(obj);
+            }
+        }
     }
 
     collideWithObject(obj)
     {
+        // Add the object to the set of currently colliding objects for this frame.
+        this.collidingObjects.add(obj);
+        
         if (typeof obj.tag != "undefined")
         {
             var slammed = false;
@@ -977,7 +1027,7 @@ class Player extends LJS.EngineObject
                 obj.destroy();
                 ableToHold = true;
                 createMessage("You unlocked a new skill!\n" + 
-                    "\"E\" at a yellow box to Hold!",
+                    "\"Q\" at a yellow box to Hold!",
                     UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
@@ -1009,7 +1059,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "holdable")
             {
-                if(LJS.keyWasPressed("KeyE"))
+                if(LJS.keyWasPressed("KeyQ"))
                 {
                     this.isHolding = this.isHolding == true? false : true;
                 }
