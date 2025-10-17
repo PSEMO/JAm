@@ -676,7 +676,7 @@ class Box extends Barrier
         super(pos, size);
         
         this.mass = mass;
-        this.color = new LJS.Color(0.5, 0.25, 0.1);
+        this.color = new LJS.Color(0.2, 0, 0);
 
         this.tag = "box";
     }
@@ -689,7 +689,7 @@ class SBox extends Box
         super(pos, size);
         
         this.mass = mass;
-        this.color = new LJS.Color(0.1, 0.5, 0.25);
+        this.color = new LJS.Color(0.2, 0, 0);
 
         this.tag = "sbox";
     }
@@ -700,7 +700,7 @@ class Giver extends Disappears
     constructor(pos, size)
     {
         super(pos, size);
-        this.color = new LJS.Color(0.8, 0, 0);
+        this.color = new LJS.Color(0.2, 0, 0);
     }
 }
 
@@ -760,7 +760,7 @@ class Holdable extends Barrier
     {
         super(pos, size);
         
-        this.color = new LJS.Color(1, 1, 0);
+        this.color = new LJS.Color(0.2, 0,1, 0.2);
 
         this.tag = "holdable";
     }
@@ -772,7 +772,7 @@ class Jumper extends Barrier
     {
         super(pos, size);
         
-        this.color = new LJS.Color(1, 1, 0);
+        this.color = new LJS.Color(0.3, 0.3, 0);
 
         this.tag = "jumper";
     }
@@ -783,7 +783,7 @@ class HalfBlock extends Barrier
     constructor(pos, size)
     {
         super(pos, size);
-        this.color = new LJS.Color(0.3, 0.75, 0.3);
+        this.color = new LJS.Color(0, 0.4, 0);
         this.tag = "breaks";
         
         this.breakTimer = new LJS.Timer();
@@ -817,7 +817,7 @@ class Ground extends Barrier
     {
         super(pos, size);
         
-        this.color = new LJS.Color(0.75, 0.75, 0.75);
+        this.color = new LJS.Color(0, 0, 0.1);
 
         this.tag = "ground";
     }
@@ -830,7 +830,7 @@ class Climbable extends Barrier
     {
         super(pos, size);
             
-        this.color = new LJS.Color(0.5, 0, 0.5);
+        this.color = new LJS.Color(0, 0.1, 0.1);
 
         this.tag = "climbable";
     }
@@ -1009,7 +1009,7 @@ class Player extends LJS.EngineObject
                 obj.destroy();
                 ableToClimb = true;
                 createMessage("You unlocked a new skill!\n" + 
-                    "\"W\" at a purple wall to Wall Jump",
+                    "\"W\" to Special Walls, Wall Jump",
                     UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
@@ -1027,7 +1027,7 @@ class Player extends LJS.EngineObject
                 obj.destroy();
                 ableToHold = true;
                 createMessage("You unlocked a new skill!\n" + 
-                    "\"Q\" at a yellow box to Hold!",
+                    "Hold on to the purple boxes!",
                     UNLOCK_MESSAGE_DURATION);
                 return 0;
             }
