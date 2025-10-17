@@ -70,7 +70,7 @@ var ableToDash = false;
 var ableToSmash = false;
 var ableToClimb = false;
 var ableToHold = false;
-var maxJumps = 1;
+var maxJumps = 2;
 //var ableToDash = true;
 //var ableToSmash = true;
 //var ableToClimb = true;
@@ -109,7 +109,7 @@ function keyJustDirection(
 
 function walk(input, player)
 {
-    if(player.isDashing == false)
+    if(player.isDashing == false && player.isHolding == false)
     {
         const currentWalkSpeed = WALK_SPEED * player.size.x;
         if(input.x > 0)
@@ -129,7 +129,7 @@ function walk(input, player)
 
 function jump(input, player)
 {
-    if(player.isDashing == false)
+    if(player.isDashing == false && player.isHolding == false)
     {
         //disables falling and jumping the normal ammount
         if(!player.groundObject &&
@@ -162,7 +162,8 @@ function dash(dashPressed, player)
     if(dashPressed &&
         !player.isDashing &&
         !player.dashCooldownTimer.active() &&
-        ableToDash)
+        ableToDash &&
+        player.isHolding == false)
     {
         player.isDashing = true;
         
@@ -386,7 +387,7 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5), vec2(1, 1));
-    //player = new Player(vec2(785, 2), vec2(1, 1));
+    player = new Player(vec2(785, 2), vec2(1, 1));
 }
 
 function setCheckPoints()
@@ -846,11 +847,9 @@ class Player extends LJS.EngineObject
         this.canSlam = true;
         this.isSlamming = false;
         this.isDashing = false;
+        this.isHolding = false;
         this.dashtimer = new LJS.Timer;
         this.dashCooldownTimer = new LJS.Timer;
-
-        this.isMovingToHoldable = false;
-        this.holdableTarget = null;
 
         this.tileInfo = playerIdle;
         this.animTimer = new LJS.Timer();
@@ -867,26 +866,6 @@ class Player extends LJS.EngineObject
     {
         //messy but works
         touchingClimbable = false;
-
-        if (this.isMovingToHoldable) {
-            if (this.holdableTarget && LJS.keyIsDown("KeyE") && ableToHold) {
-                const HOLD_LERP_SPEED = 0.2; // How fast player moves to the holdable
-                this.gravityScale = 0; // Disable gravity
-                this.velocity = vec2(0, 0); // Stop movement from other sources
-                this.pos = this.pos.lerp(this.holdableTarget.pos, HOLD_LERP_SPEED);
-                
-                // Once close enough, snap to position and allow a jump
-                if (this.pos.distance(this.holdableTarget.pos) < 0.1) {
-                    this.pos = this.holdableTarget.pos.copy();
-                    this.jumpCount = 1;
-                }
-            } else {
-                // Stop holding if key is released or target is gone
-                this.isMovingToHoldable = false;
-                this.holdableTarget = null;
-                this.gravityScale = 1; // Re-enable gravity
-            }
-        }
 
         super.update();
 
@@ -1030,12 +1009,35 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "holdable")
             {
-                if (LJS.keyIsDown("KeyE") && ableToHold) {
-                    if (!this.isMovingToHoldable) {
-                        this.isMovingToHoldable = true;
-                        this.holdableTarget = obj;
+                console.log(this.isHolding);
+                if(LJS.keyWasPressed("KeyE"))
+                {
+                    this.isHolding = this.isHolding == true? false : true; 
+                }
+
+                if(ableToHold)
+                {
+                    if (this.isHolding)
+                    {
+                        const HOLD_LERP_SPEED = 0.2; // How fast player moves to the holdable
+                        this.gravityScale = 0; // Disable gravity
+                        this.velocity = vec2(0, 0); // Stop movement from other sources
+                        this.pos = this.pos.lerp(obj.pos, HOLD_LERP_SPEED);
+        
+                        // Once close enough, snap to position and allow a jump
+                        if (this.pos.distance(obj.pos) < 0.1)
+                        {
+                            this.pos = obj.pos.copy();
+                        }
+                        
+                        this.jumpCount = 1;
+                    }
+                    else
+                    {
+                        this.gravityScale = 1;
                     }
                 }
+
                 return 0;
             }
             else if(obj.tag == "jumper")
