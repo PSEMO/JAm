@@ -333,9 +333,11 @@ function die()
     LJS.setCameraPos(lastCheckpoint.copy());
     player.velocity = vec2(0, 0);
 
-    for (let i = LJS.engineObjects.length - 1; i >= 0; i--) {
+    for (let i = LJS.engineObjects.length - 1; i >= 0; i--)
+    {
         const obj = LJS.engineObjects[i];
-        if (obj.isResettable) {
+        if (obj.isResettable)
+        {
             obj.destroy();
         }
     }
@@ -356,7 +358,8 @@ function triggerGameEnd()
     displayMessage();
 }
 
-function checkCheckpoints() {
+function checkCheckpoints()
+{
     for (let i = lastCheckpointIndex + 1; i < checkpoints.length; i++) {
         const checkpoint = checkpoints[i];
         if (player.pos.x > checkpoint.x) {
