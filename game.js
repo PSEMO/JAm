@@ -71,11 +71,6 @@ var ableToSmash = false;
 var ableToClimb = false;
 var ableToHold = false;
 var maxJumps = 1;
-//var ableToDash = true;
-//var ableToSmash = true;
-//var ableToClimb = true;
-//var ableToHold = true;
-//var maxJumps = 99;
 
 var touchingClimbable = false;
 
@@ -387,7 +382,12 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5), vec2(1, 1));
-    //player = new Player(vec2(785, 2), vec2(1, 1));
+    player = new Player(vec2(785, 2), vec2(1, 1));
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -1009,10 +1009,9 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "holdable")
             {
-                console.log(this.isHolding);
                 if(LJS.keyWasPressed("KeyE"))
                 {
-                    this.isHolding = this.isHolding == true? false : true; 
+                    this.isHolding = this.isHolding == true? false : true;
                 }
 
                 if(ableToHold)
@@ -1110,15 +1109,23 @@ function gameUpdate()
     }
 
     var moveInput = LJS.keyDirection();
+    var moveInputDown = keyJustDirection();
+    var dashKeyDown = LJS.keyWasPressed("ShiftLeft");
+    var downKeyDown = LJS.keyWasPressed('ArrowDown');
+    
+    if(player.isHolding == true && 
+        (moveInputDown.x != 0 || moveInputDown.y != 0 || dashKeyDown || downKeyDown)
+    )
+    {
+        player.isHolding = false;
+    }
+
     walk(moveInput, player);
     
-    var moveInputDown = keyJustDirection();
     jump(moveInputDown, player);
     
-    var dashKeyDown = LJS.keyWasPressed("ShiftLeft");
     dash(dashKeyDown, player);
 
-    var downKeyDown = LJS.keyWasPressed('ArrowDown');
     groundSlam(downKeyDown, player);
 
     deathTracker();
