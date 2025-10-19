@@ -74,7 +74,7 @@ var maxJumps = 1;
 
 var touchingClimbable = false;
 
-var bg1, bg2;
+var bg0, bg1, bg2, bg3;
 
 let unlockMessageTimer;
 var messageToDisplayAtUnlock;
@@ -275,32 +275,32 @@ function setGiverTiles()
 
 function setBackground()
 {
+    bg0 = new Background(vec2(-BACKGROUND_WIDTH, BACKGROUND_OFFSET_Y));
     bg1 = new Background(vec2(0, BACKGROUND_OFFSET_Y));
     bg2 = new Background(vec2(BACKGROUND_WIDTH, BACKGROUND_OFFSET_Y));
+    bg3 = new Background(vec2(2 * BACKGROUND_WIDTH, BACKGROUND_OFFSET_Y));
+    bg0.mass = 0;
     bg1.mass = 0;
     bg2.mass = 0;
+    bg3.mass = 0;
 }
 
 function moveBackground()
 {
-    // Teleport backgrounds when player moves far enough
-    if (player.pos.x > bg1.pos.x + BACKGROUND_WIDTH)
-    {
-        bg1.pos.x += 2 * BACKGROUND_WIDTH;
-    }
-    else if (player.pos.x < bg1.pos.x - BACKGROUND_WIDTH)
-    {
-        bg1.pos.x -= 2 * BACKGROUND_WIDTH;
-    }
+    const backgrounds = [bg0, bg1, bg2, bg3];
+    const totalWidth = 4 * BACKGROUND_WIDTH;
+    const teleportThreshold = 2 * BACKGROUND_WIDTH;
 
-    if (player.pos.x > bg2.pos.x + BACKGROUND_WIDTH)
-    {
-        bg2.pos.x += 2 * BACKGROUND_WIDTH;
-    }
-    else if (player.pos.x < bg2.pos.x - BACKGROUND_WIDTH)
-    {
-        bg2.pos.x -= 2 * BACKGROUND_WIDTH;
-    }
+    backgrounds.forEach(bg => {
+        if (player.pos.x > bg.pos.x + teleportThreshold)
+        {
+            bg.pos.x += totalWidth;
+        }
+        else if (player.pos.x < bg.pos.x - teleportThreshold)
+        {
+            bg.pos.x -= totalWidth;
+        }
+    });
 }
 
 function createMessage(text, duration)
