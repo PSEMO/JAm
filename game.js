@@ -26,7 +26,7 @@ const SLAM_SHOCKWAVE_RADIUS = 5;
 const SLAM_SHOCKWAVE_FORCE = 0.2;
 const PLAYER_GROWTH_MULTIPLIER = 2;
 const PLAYER_POS_ADj_ON_GROW = 0.25;
-const PLAYER_ANIM_FRAME_RATE = 10;
+const PLAYER_ANIM_FRAME_RATE = 15;
 const PLAYER_SPRITE_TILE_SIZE = 25;
 
 // UI
@@ -64,8 +64,9 @@ var screenSize = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 var player;
 let playerIdle, playerRun, playerJump, playerSlam, playerDash;
+let dashGiverSprite, doubleJumpGiverSprite, smashGiverSprite, climbGiverSprite, holdGiverSprite;
+let boxSprite, sboxSprite, holdableSprite;
 
-//TODO CHANGE BEFORE RELEASE
 var ableToDash = false;
 var ableToSmash = false;
 var ableToClimb = false;
@@ -106,7 +107,7 @@ function walk(input, player)
 {
     if(player.isDashing == false && player.isHolding == false)
     {
-        const currentWalkSpeed = WALK_SPEED * player.size.x;
+        const currentWalkSpeed = WALK_SPEED * player.size.y;
         if(input.x > 0)
         {
             player.velocity = vec2(currentWalkSpeed, player.velocity.y);
@@ -136,7 +137,7 @@ function jump(input, player)
 
         if (input.y > 0 && player.jumpCount > 0)
         {
-            const sizeMult = player.size.x < 1? 0.5: 1;
+            const sizeMult = player.size.y < 1? 0.5: 1;
             const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
             const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
             if (player.velocity.y < currentJumpVelocity)
@@ -171,7 +172,7 @@ function dash(dashPressed, player)
         {
             dashDirection = vec2(player.mirror ? -1 : 1, 0);
         }
-        const currentDashSpeed = DASH_SPEED * player.size.x;
+        const currentDashSpeed = DASH_SPEED * player.size.y;
         player.velocity = dashDirection.normalize(currentDashSpeed);
 
         player.gravityScale = 0;
@@ -194,7 +195,7 @@ function groundSlam(slamPressed, player)
     {
         player.isSlamming = true;
         player.canSlam = false;
-        player.velocity.y = SLAM_VELOCITY * player.size.x;
+        player.velocity.y = SLAM_VELOCITY * player.size.y;
     }
 }
 
@@ -222,6 +223,8 @@ function changePlayerSize(toBigger, obj)
         player.mass = player.size.x + player.size.y
         obj.destroy()
     }
+
+    player.drawSize = vec2(player.size.x * 2,  player.size.y);
 }
 
 function camControl()
@@ -252,6 +255,22 @@ function setTiles()
     playerDash = LJS.tile(16, PLAYER_SPRITE_TILE_SIZE, 0);
 }
 
+function setGiverTiles()
+{
+    // Texture indices are based on the order in engineInit
+    dashGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 2);
+    doubleJumpGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 3);
+    smashGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 4);
+    climbGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 5);
+    holdGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 6);
+
+    // NOTE: You will need to add your icon files to the engineInit call at the bottom.
+    // Assuming 'Box.png' is texture index 7 and 'SBox.png' is 8
+    boxSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 7);
+    sboxSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 8);
+    holdableSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 9);
+}
+
 function setBackground()
 {
     bg1 = new Background(vec2(0, BACKGROUND_OFFSET_Y));
@@ -263,15 +282,21 @@ function setBackground()
 function moveBackground()
 {
     // Teleport backgrounds when player moves far enough
-    if (player.pos.x > bg1.pos.x + BACKGROUND_WIDTH) {
+    if (player.pos.x > bg1.pos.x + BACKGROUND_WIDTH)
+    {
         bg1.pos.x += 2 * BACKGROUND_WIDTH;
-    } else if (player.pos.x < bg1.pos.x - BACKGROUND_WIDTH) {
+    }
+    else if (player.pos.x < bg1.pos.x - BACKGROUND_WIDTH)
+    {
         bg1.pos.x -= 2 * BACKGROUND_WIDTH;
     }
 
-    if (player.pos.x > bg2.pos.x + BACKGROUND_WIDTH) {
+    if (player.pos.x > bg2.pos.x + BACKGROUND_WIDTH)
+    {
         bg2.pos.x += 2 * BACKGROUND_WIDTH;
-    } else if (player.pos.x < bg2.pos.x - BACKGROUND_WIDTH) {
+    }
+    else if (player.pos.x < bg2.pos.x - BACKGROUND_WIDTH)
+    {
         bg2.pos.x -= 2 * BACKGROUND_WIDTH;
     }
 }
@@ -360,7 +385,8 @@ function triggerGameEnd()
 
 function checkCheckpoints()
 {
-    for (let i = lastCheckpointIndex + 1; i < checkpoints.length; i++) {
+    for (let i = lastCheckpointIndex + 1; i < checkpoints.length; i++)
+    {
         const checkpoint = checkpoints[i];
         if (player.pos.x > checkpoint.x) {
             lastCheckpoint = checkpoint;
@@ -384,8 +410,8 @@ function createLevel()
     setResettableObjectTemplates();
 
     //TODO CHANGE BEFORE RELEASE
-    player = new Player(vec2(0, 1.5), vec2(1, 1));
-    //player = new Player(vec2(785, 2), vec2(1, 1));
+    player = new Player(vec2(0, 1.5));
+    //player = new Player(vec2(785, 2));
     //ableToDash = true;
     //ableToSmash = true;
     //ableToClimb = true;
@@ -436,6 +462,7 @@ function createBlocks()
     //new ClimbGiver(vec2(0, 0));
     //new SmashGiver(vec2(0, 0));
     //new DoubleJumpGiver(vec2(0, 0));
+    //new HoldGiver(vec2(790, 2), vec2(1, 1));
 
     // Start
     new Ground(vec2(0, 0), vec2(19, 1));
@@ -550,7 +577,7 @@ function createBlocks()
     //climbable box after
     new Climbable(vec2(557.75, 5), vec2(1, 13.5));
     new Ground(vec2(570, 5), vec2(23.5, 13.5));
-    new DoubleJumpGiver(vec2(580, 13.5));
+    new DoubleJumpGiver(vec2(580, 13.5), vec2(1, 1));
 
     //platforms that follow
     new BreakableBlock(vec2(590, 5.5), vec2(10, 1));
@@ -679,7 +706,8 @@ class Box extends Barrier
         super(pos, size);
         
         this.mass = mass;
-        this.color = new LJS.Color(0.2, 0, 0);
+        this.tileInfo = boxSprite;
+        this.color = undefined;
 
         this.tag = "box";
     }
@@ -692,7 +720,8 @@ class SBox extends Box
         super(pos, size);
         
         this.mass = mass;
-        this.color = new LJS.Color(0.2, 0, 0);
+        this.tileInfo = sboxSprite;
+        this.color = undefined;
 
         this.tag = "sbox";
     }
@@ -712,8 +741,9 @@ class DashGiver extends Giver
     constructor(pos, size)
     {
         super(pos, size);
-
         this.tag = "dashGiver";
+        this.tileInfo = dashGiverSprite;
+        this.color = undefined;
     }
 }
 
@@ -722,8 +752,9 @@ class DoubleJumpGiver extends Giver
     constructor(pos, size)
     {
         super(pos, size);
-
         this.tag = "doubleJumpGiver";
+        this.tileInfo = doubleJumpGiverSprite;
+        this.color = undefined;
     }
 }
 
@@ -732,8 +763,9 @@ class SmashGiver extends Giver
     constructor(pos, size)
     {
         super(pos, size);
-
         this.tag = "smashGiver";
+        this.tileInfo = smashGiverSprite;
+        this.color = undefined;
     }
 }
 
@@ -742,8 +774,9 @@ class ClimbGiver extends Giver
     constructor(pos, size)
     {
         super(pos, size);
-
         this.tag = "climbGiver";
+        this.tileInfo = climbGiverSprite;
+        this.color = undefined;
     }
 }
 
@@ -752,8 +785,9 @@ class HoldGiver extends Giver
     constructor(pos, size)
     {
         super(pos, size);
-
         this.tag = "holdGiver";
+        this.tileInfo = holdGiverSprite;
+        this.color = undefined;
     }
 }
 
@@ -763,7 +797,8 @@ class Holdable extends Barrier
     {
         super(pos, size);
         
-        this.color = new LJS.Color(0.2, 0,1, 0.2);
+        this.tileInfo = holdableSprite;
+        this.color = undefined;
 
         this.tag = "holdable";
     }
@@ -841,11 +876,12 @@ class Climbable extends Barrier
 
 class Player extends LJS.EngineObject
 {
-    constructor(pos, size = vec2(1,1))
+    constructor(pos, size = vec2(0.5,1))
     {
         super(pos, size);
         this.mass = size.x + size.y;
         this.setCollision();
+        this.drawSize = vec2(this.size.x * 2,  this.size.y);
         this.jumpCount = 0;
         this.canSlam = true;
         this.isSlamming = false;
@@ -1148,6 +1184,7 @@ function gameInit()
     LJS.setCameraScale(CAMERA_BASE_SCALE);
 
     setTiles();
+    setGiverTiles();
 
     createLevel();
 
@@ -1219,6 +1256,18 @@ LJS.engineInit(
     gameUpdatePost,
     gameRender,
     gameRenderPost,
-    ['tiles.png', 'background.png']);
+    [
+        'tiles.png', 
+        'background.png',
+        'DashGiver.png',
+        'DoubleJumpGiver.png',
+        'SmashGiver.png',
+        'ClimbGiver.png',
+        'HoldGiver.png',
+        'Box.png',
+        'SBox.png',
+        'Holdable.png'
+    ]
+);
 
 //#endregion
