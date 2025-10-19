@@ -139,7 +139,7 @@ function jump(input, player)
 
         if (input.y > 0 && player.jumpCount > 0)
         {
-            const sizeMult = player.size.y < 1? 0.5: 1;
+            const sizeMult = player.size.y < 1? 0.65: 1;
             const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
             const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
             if (player.velocity.y < currentJumpVelocity)
@@ -312,16 +312,17 @@ function createMessage(text, duration)
 
 function displayMessage()
 {
-    if (unlockMessageTimer.active()) {
-    LJS.drawTextScreen(
-        messageToDisplayAtUnlock,
-        vec2(screenSize.x / 2, screenSize.y / 2),
-        40,
-        rgb(1, 1, 0.5),
-        3,
-        rgb(0, 0, 0)
-    );
-}
+    if (unlockMessageTimer.active())
+    {
+        LJS.drawTextScreen(
+            messageToDisplayAtUnlock,
+            vec2(screenSize.x / 2, screenSize.y / 2),
+            40,
+            rgb(1, 1, 0.5),
+            3,
+            rgb(0, 0, 0)
+        );
+    }
 }
 
 function drawDashBar()
@@ -429,12 +430,12 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
-    //player = new Player(vec2(1129, 2));
-    //ableToDash = true;
-    //ableToSmash = true;
-    //ableToClimb = true;
-    //ableToHold = true;
-    //maxJumps = 2;
+    player = new Player(vec2(1129, 2));
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 2;
 }
 
 function setCheckPoints()
@@ -513,10 +514,18 @@ function createBlocks()
     new Ground(vec2(48, 5), vec2(3, 1));
     new Ground(vec2(53, 4), vec2(3, 1));
 
-    // A long platform at the end
+    // A long platform and hollowed out box
     new Ground(vec2(73, 4), vec2(31, 1));
     new SBox(vec2(66, 5), vec2(1, 1));
-    new Ground(vec2(75, 13), vec2(15, 15));
+    new Ground(vec2(68, 13), vec2(1, 15));
+    new Ground(vec2(75, 20), vec2(15, 1));
+    new Ground(vec2(82, 13), vec2(1, 15));
+    new Ground(vec2(71, 4.5), vec2(1.5, 0.5));
+    new HalfBlock(vec2(73, 5), vec2(1.5, 0.5));
+    new HalfBlock(vec2(74.8, 5.5), vec2(1.5, 0.5));
+    new HalfBlock(vec2(76.6, 6), vec2(1.5, 0.5));
+    new Ground(vec2(78.4, 6), vec2(1.5, 0.5));
+    new Ground(vec2(80.2, 5.5), vec2(0.5, 3));
     new Box(vec2(85, 6), vec2(1, 1));
 
     // 3 wide blocks with space between them
@@ -666,16 +675,14 @@ function createBlocks()
     new Ground(vec2(1130, 0), vec2(3, 1));
     new SBox(vec2(1130, 2), vec2(1, 1));
     new HalfBlock(vec2(1133, 0), vec2(1.5, 0.5));
-    new HalfBlock(vec2(1135.5, 0), vec2(1.5, 0.5));
     new HalfBlock(vec2(1138, 0), vec2(1.5, 0.5));
-    new HalfBlock(vec2(1140.5, 0), vec2(1.5, 0.5));
     new HalfBlock(vec2(1143, 0), vec2(1.5, 0.5));
-    new HalfBlock(vec2(1145.5, 0), vec2(1.5, 0.5));
     new HalfBlock(vec2(1148, 0), vec2(1.5, 0.5));
-    new HalfBlock(vec2(1150.5, 0), vec2(1.5, 0.5));
     new HalfBlock(vec2(1153, 0), vec2(1.5, 0.5));
     new Ground(vec2(1170, 10.8), vec2(10, 20));
     new Ground(vec2(1165, -9.8), vec2(20, 20));
+    new Climbable(vec2(1155.25, 1.2), vec2(0.5, 2));
+    new BreakableBlock(vec2(1163, 1.2), vec2(0.5, 2));
 }
 
 //#endregion
@@ -925,7 +932,7 @@ class Climbable extends Barrier
     {
         super(pos, size);
             
-        this.color = new LJS.Color(0, 0.1, 0.1);
+        this.color = new LJS.Color(0, 0.2, 0.2);
 
         this.tag = "climbable";
     }
@@ -1030,7 +1037,8 @@ class Player extends LJS.EngineObject
             }
         }
 
-        if (this.velocity.x !== 0 && !this.isDashing) {
+        if (this.velocity.x !== 0 && !this.isDashing)
+        {
             this.mirror = this.velocity.x < 0;
         }
 
