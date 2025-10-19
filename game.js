@@ -1,6 +1,85 @@
 import * as LJS from './node_modules/littlejsengine/dist/littlejs.esm.js';
 const {vec2, rgb} = LJS;
 //
+//#region Audio
+
+// Object to hold the paths to the sound files
+const soundFiles = {
+    'Music': 'Music.mp3',
+    'Jump': 'Jump.mp3',
+    'PlatformDisappeared': 'PlatformDisappeared.mp3',
+    'Shrink': 'Shrink.mp3',
+    'GetBigger': 'GetBigger.mp3',
+    'GiverCollected': 'GiverCollected.mp3',
+    'Dash': 'Dash.mp3',
+    'PlatformBreak': 'PlatformBreak.mp3',
+    'JumpingPlatform': 'JumpingPlatform.mp3',
+    'BoxHold': 'BoxHold.mp3',
+    'GameVictory': 'GameVictory.mp3',
+    'Smash': 'Smash.mp3',
+    'Died': 'Died.mp3'
+};
+
+// Object to store the loaded Audio objects
+const audioContext = {};
+
+/**
+ * Loads all the sounds from the soundFiles object into the audioContext.
+ */
+function loadSounds() {
+    for (const key in soundFiles) {
+        audioContext[key] = new Audio(soundFiles[key]);
+        // Set the main music to loop
+        if (key === 'Music') {
+            audioContext[key].loop = true;
+        }
+    }
+}
+
+/**
+ * Plays a sound by its name.
+ * @param {string} name - The name of the sound to play (must be a key in soundFiles).
+ * @param {number} [volume=1.0] - The volume to play the sound at (0.0 to 1.0).
+ */
+function playSound(name, volume = 1.0) {
+    if (audioContext[name]) {
+        // Clone the audio node to allow for overlapping sounds
+        const sound = audioContext[name].cloneNode();
+        sound.volume = volume;
+        sound.play().catch(error => console.error(`Error playing sound: ${name}`, error));
+    }
+}
+
+/**
+ * Starts playing the background music.
+ * Handles browser autoplay restrictions by waiting for user interaction.
+ */
+function playMusic()
+{
+    if (audioContext['Music'])
+        {
+        audioContext['Music'].volume = 0.75; // Set a reasonable volume for background music
+        const playPromise = audioContext['Music'].play();
+
+        if (playPromise !== undefined)
+        {
+            playPromise.catch(error => {
+                console.log("Music autoplay was prevented. Waiting for user interaction.");
+                // Add event listeners to play music on the first click or keydown
+                const startMusic = () => {
+                    audioContext['Music'].play();
+                    document.body.removeEventListener('click', startMusic);
+                    document.body.removeEventListener('keydown', startMusic);
+                };
+                document.body.addEventListener('click', startMusic, { once: true });
+                document.body.addEventListener('keydown', startMusic, { once: true });
+            });
+        }
+    }
+}
+
+//#endregion
+//-
 //#region Constants
 
 // Screen
@@ -139,6 +218,7 @@ function jump(input, player)
 
         if (input.y > 0 && player.jumpCount > 0)
         {
+            playSound('Jump');
             const sizeMult = player.size.y < 1? 0.65: 1;
             const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
             const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
@@ -163,6 +243,7 @@ function dash(dashPressed, player)
         ableToDash &&
         player.isHolding == false)
     {
+        playSound('Dash');
         player.isDashing = true;
         
         player.dashtimer.set(DASH_DURATION);
@@ -205,6 +286,7 @@ function changePlayerSize(toBigger, obj)
 {
     if(toBigger)
     {
+        playSound('GetBigger');
         player.size.x *= PLAYER_GROWTH_MULTIPLIER;
         player.size.y *= PLAYER_GROWTH_MULTIPLIER;
         
@@ -216,6 +298,7 @@ function changePlayerSize(toBigger, obj)
     }
     else
     {
+        playSound('Shrink');
         player.size.x /= PLAYER_GROWTH_MULTIPLIER;
         player.size.y /= PLAYER_GROWTH_MULTIPLIER;
         
@@ -357,6 +440,7 @@ function deathTracker()
 
 function die()
 {
+    playSound('Died');
     player.pos = lastCheckpoint.copy();
     LJS.setCameraPos(lastCheckpoint.copy());
     player.velocity = vec2(0, 0);
@@ -382,6 +466,7 @@ function checkGameEnd()
 
 function triggerGameEnd()
 {
+    playSound('GameVictory');
     createMessage("You Won!", YOU_WON_MESSAGE_DURATION);
     displayMessage();
 }
@@ -431,11 +516,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1129, 2));
-    //ableToDash = true;
-    //ableToSmash = true;
-    //ableToClimb = true;
-    //ableToHold = true;
-    //maxJumps = 99;
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -750,6 +835,7 @@ class BreakableBlock extends Disappears
 
     destroy()
     {
+        playSound('PlatformBreak');
         new LJS.ParticleEmitter(
             this.pos, 0, this.size, 0.1, 100, LJS.PI,
             undefined,
@@ -897,6 +983,9 @@ class HalfBlock extends Barrier
     {
         if (this.breakTimer.elapsed())
         {
+            if (!this.isBroken) {
+                playSound('PlatformDisappeared');
+            }
             this.isBroken = true;
             this.color.a = 0.5;
             this.breakTimer.unset();
@@ -971,6 +1060,7 @@ class Player extends LJS.EngineObject
     {
         if(obj.tag == "holdable")
         {
+            playSound('BoxHold');
             this.isHolding = true;
         }
     }
@@ -1072,6 +1162,7 @@ class Player extends LJS.EngineObject
                 (obj.tag == "ground" || obj.tag == "box" || obj.tag == "jumper" || 
                 obj.tag == "breaks" || obj.tag == "breakableBlock" || obj.tag == "climbable"))
             {
+                playSound('Smash');
                 slammed = true;
                 this.isSlamming = false;
                 new LJS.ParticleEmitter(
@@ -1092,6 +1183,7 @@ class Player extends LJS.EngineObject
 
             if(obj.tag == "dashGiver")
             {
+                playSound('GiverCollected');
                 obj.destroy();
                 ableToDash = true;
                 createMessage("You unlocked a new skill!\n" + 
@@ -1101,6 +1193,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "doubleJumpGiver")
             {
+                playSound('GiverCollected');
                 obj.destroy();
                 maxJumps = 2;
                 createMessage("You unlocked a new skill!\n" + 
@@ -1110,6 +1203,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "climbGiver")
             {
+                playSound('GiverCollected');
                 obj.destroy();
                 ableToClimb = true;
                 createMessage("You unlocked a new skill!\n" + 
@@ -1119,6 +1213,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "smashGiver")
             {
+                playSound('GiverCollected');
                 obj.destroy();
                 ableToSmash = true;
                 createMessage("You unlocked a new skill!\n" + 
@@ -1128,6 +1223,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "holdGiver")
             {
+                playSound('GiverCollected');
                 obj.destroy();
                 ableToHold = true;
                 createMessage("You unlocked a new skill!\n" + 
@@ -1195,6 +1291,7 @@ class Player extends LJS.EngineObject
             }
             else if(obj.tag == "jumper")
             {
+                playSound('JumpingPlatform');
                 this.SetLandedParameters();
 
                 this.velocity.y = this.velocity.y * JUMPER_BOUNCE_FACTOR;
@@ -1249,6 +1346,9 @@ function gameInit()
 
     LJS.setCameraScale(CameraBaseScale);
 
+    loadSounds();
+    playMusic();
+    
     setTiles();
     setGiverTiles();
 
@@ -1337,4 +1437,3 @@ LJS.engineInit(
 );
 
 //#endregion
-//
