@@ -4,7 +4,8 @@ const {vec2, rgb} = LJS;
 //#region Audio
 
 // Object to hold the paths to the sound files
-const soundFiles = {
+const soundFiles =
+{
     'Music': 'Music.mp3',
     'Jump': 'Jump.mp3',
     'PlatformDisappeared': 'PlatformDisappeared.mp3',
@@ -26,11 +27,14 @@ const audioContext = {};
 /**
  * Loads all the sounds from the soundFiles object into the audioContext.
  */
-function loadSounds() {
-    for (const key in soundFiles) {
+function loadSounds()
+{
+    for (const key in soundFiles)
+    {
         audioContext[key] = new Audio(soundFiles[key]);
         // Set the main music to loop
-        if (key === 'Music') {
+        if (key === 'Music')
+        {
             audioContext[key].loop = true;
         }
     }
@@ -41,8 +45,10 @@ function loadSounds() {
  * @param {string} name - The name of the sound to play (must be a key in soundFiles).
  * @param {number} [volume=1.0] - The volume to play the sound at (0.0 to 1.0).
  */
-function playSound(name, volume = 1.0) {
-    if (audioContext[name]) {
+function playSound(name, volume = 1.0)
+{
+    if (audioContext[name])
+    {
         // Clone the audio node to allow for overlapping sounds
         const sound = audioContext[name].cloneNode();
         sound.volume = volume;
@@ -516,11 +522,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1129, 2));
-    ableToDash = true;
-    ableToSmash = true;
-    ableToClimb = true;
-    ableToHold = true;
-    maxJumps = 99;
+    //ableToDash = true;
+    //ableToSmash = true;
+    //ableToClimb = true;
+    //ableToHold = true;
+    //maxJumps = 99;
 }
 
 function setCheckPoints()
