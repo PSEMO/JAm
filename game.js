@@ -607,7 +607,7 @@ function createBlocks()
     //climbable box after
     new Climbable(vec2(557.75, 5), vec2(1, 13.5));
     new Ground(vec2(570, 5), vec2(23.5, 13.5));
-    new DoubleJumpGiver(vec2(580, 13.5), vec2(1, 1));
+    new DoubleJumpGiver(vec2(580, 13), vec2(1, 1));
 
     //platforms that follow
     new BreakableBlock(vec2(590, 5.5), vec2(10, 1));
