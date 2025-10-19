@@ -9,8 +9,6 @@ const SCREEN_HEIGHT = 720;
 
 // Camera
 const CAMERA_SMOOTHNESS = 0.05;
-const CAMERA_BASE_SCALE = 55;
-const CAMERA_MAX_SCALE = 8;
 const CAMERA_ZOOM_SPEED_FACTOR = 0.5;
 const CAMERA_ZOOM_SMOOTHNESS = 0.05;
 
@@ -42,9 +40,9 @@ const YOU_WON_MESSAGE_DURATION = 999;
 const CHECKPOINT_MESSAGE_DURATION = 2;
 
 // Other
-const GAME_END_POS_X = 840;
+const GAME_END_POS_X = 1173;
 const BACKGROUND_WIDTH = 45;
-const BACKGROUND_OFFSET_Y = -2;
+const BACKGROUND_OFFSET_Y = -3;
 const GRAVITY_Y = -0.01;
 const HALF_BLOCK_RESPAWN_TIME = 2.0;
 const HALF_BLOCK_BREAK_DELAY = 0.7;
@@ -52,6 +50,7 @@ const JUMPER_BOUNCE_FACTOR = -0.85;
 const JUMPER_MIN_BOUNCE_VELOCITY_SQ = 0.01;
 const JUMPER_POSITION_ADJUST_ON_BOUNCE = 1;
 const DEATH_Y_LIMIT = -23;
+const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 
 //#endregion
 //-
@@ -85,6 +84,9 @@ var lastCheckpoint;
 var lastCheckpointIndex = 0;
 
 var resettableObjectTemplates = [];
+
+var CameraBaseScale = 55;
+var CameraMaxScale = 8;
 
 //#endregion
 //-
@@ -234,8 +236,8 @@ function camControl()
     LJS.setCameraPos(LJS.cameraPos.lerp(targetPos, CAMERA_SMOOTHNESS));
     const playerSpeed = player.velocity.length();
     const targetScale = LJS.lerp(
-        CAMERA_BASE_SCALE,
-        CAMERA_MAX_SCALE,
+        CameraBaseScale,
+        CameraMaxScale,
         LJS.clamp(playerSpeed * CAMERA_ZOOM_SPEED_FACTOR)
     );
     LJS.setCameraScale(LJS.lerp(LJS.cameraScale, targetScale, CAMERA_ZOOM_SMOOTHNESS));
@@ -399,6 +401,22 @@ function checkCheckpoints()
             break;
         }
     }
+
+    if(lastCheckpointIndex == checkpoints.length - 3)
+    {
+        CameraBaseScale = 38;
+        CameraMaxScale = 5;
+    }
+    else if(lastCheckpointIndex == checkpoints.length - 2)
+    {
+        CameraBaseScale = 32;
+        CameraMaxScale = 4;
+    }
+    else if(lastCheckpointIndex == checkpoints.length - 1)
+    {
+        CameraBaseScale = 70;
+        CameraMaxScale = 10;
+    }
 }
 
 function createLevel()
@@ -411,12 +429,12 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
-    //player = new Player(vec2(785, 2));
+    //player = new Player(vec2(1129, 2));
     //ableToDash = true;
     //ableToSmash = true;
     //ableToClimb = true;
     //ableToHold = true;
-    //maxJumps = 99;
+    //maxJumps = 2;
 }
 
 function setCheckPoints()
@@ -429,7 +447,10 @@ function setCheckPoints()
         vec2(470, 12.5),
         vec2(575, 12.5),
         vec2(680, 1.5),
-        vec2(780, 1.5)
+        vec2(780, 1.5),
+        vec2(840, 1.5),
+        vec2(990, 1.5),
+        vec2(1130, 1.5)
     ];
     lastCheckpoint = checkpoints[0].copy();
     lastCheckpointIndex = 0;
@@ -610,6 +631,7 @@ function createBlocks()
     new Ground(vec2(770, 0), vec2(43, 1));
     new BreakableBlock(vec2(770, 10.5), vec2(1, 20));
 
+    //teaches the holdable object
     new HoldGiver(vec2(790, 2), vec2(1, 1));
     new Holdable(vec2(795, 3), vec2(1, 1));
     new Holdable(vec2(800, 3), vec2(1, 1));
@@ -619,6 +641,41 @@ function createBlocks()
     new Holdable(vec2(820, 3), vec2(1, 1));
     new Holdable(vec2(825, 3), vec2(1, 1));
     new Ground(vec2(835, 0), vec2(15, 1));
+
+    //End section
+    new HalfBlock(vec2(854, 4), vec2(3, 1));
+    new HalfBlock(vec2(867, 0), vec2(3, 1));
+    new HalfBlock(vec2(880, 4), vec2(3, 1));
+    new HalfBlock(vec2(893, 0), vec2(3, 1));
+    new Holdable(vec2(906, 4), vec2(1, 1));
+    new Holdable(vec2(911, 4), vec2(1, 1));
+    new Holdable(vec2(916, 4), vec2(1, 1));
+    new Holdable(vec2(921, 4), vec2(1, 1));
+    new Jumper(vec2(930, 0), vec2(3, 1));
+    new HalfBlock(vec2(947, 0), vec2(3, 1));
+    new Jumper(vec2(960, 0), vec2(3, 1));
+    new HalfBlock(vec2(977, 0), vec2(3, 1));
+    new Ground(vec2(990, 0), vec2(3, 1));
+    new Ground(vec2(1010, 0), vec2(3, 1));
+    new Ground(vec2(1030, 0), vec2(3, 1));
+    new Ground(vec2(1050, 0), vec2(3, 1));
+    new Holdable(vec2(1067, 3), vec2(1, 1));
+    new HalfBlock(vec2(1080, 0), vec2(3, 1));
+    new Holdable(vec2(1097, 3), vec2(1, 1));
+    new HalfBlock(vec2(1110, 0), vec2(3, 1));
+    new Ground(vec2(1130, 0), vec2(3, 1));
+    new SBox(vec2(1130, 2), vec2(1, 1));
+    new HalfBlock(vec2(1133, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1135.5, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1138, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1140.5, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1143, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1145.5, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1148, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1150.5, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(1153, 0), vec2(1.5, 0.5));
+    new Ground(vec2(1170, 10.8), vec2(10, 20));
+    new Ground(vec2(1165, -9.8), vec2(20, 20));
 }
 
 //#endregion
@@ -1178,10 +1235,11 @@ class Player extends LJS.EngineObject
 function gameInit()
 {
     LJS.setCanvasFixedSize(screenSize);
+    LJS.setCanvasClearColor(BACKGROUND_COLOR);
 
     LJS.setGravity(vec2(0, GRAVITY_Y));
 
-    LJS.setCameraScale(CAMERA_BASE_SCALE);
+    LJS.setCameraScale(CameraBaseScale);
 
     setTiles();
     setGiverTiles();
