@@ -1,95 +1,6 @@
 import * as LJS from './node_modules/littlejsengine/dist/littlejs.esm.js';
 const {vec2, rgb} = LJS;
 //
-//#region Audio
-
-// Object to hold the paths to the sound files
-const soundFiles =
-{
-    'Music': 'Music.mp3',
-    'Jump': 'Jump.mp3',
-    'PlatformDisappeared': 'PlatformDisappeared.mp3',
-    'Shrink': 'Shrink.mp3',
-    'GetBigger': 'GetBigger.mp3',
-    'GiverCollected': 'GiverCollected.mp3',
-    'Dash': 'Dash.mp3',
-    'PlatformBreak': 'PlatformBreak.mp3',
-    'JumpingPlatform': 'JumpingPlatform.mp3',
-    'BoxHold': 'BoxHold.mp3',
-    'GameVictory': 'GameVictory.mp3',
-    'Smash': 'Smash.mp3',
-    'Died': 'Died.mp3'
-};
-
-// Object to store the loaded Audio objects
-const audioContext = {};
-
-/**
- * Loads all the sounds from the soundFiles object into the audioContext.
- */
-function loadSounds()
-{
-    for (const key in soundFiles)
-    {
-        audioContext[key] = new Audio(soundFiles[key]);
-        // Set the main music to loop
-        if (key === 'Music')
-        {
-            audioContext[key].loop = true;
-        }
-    }
-}
-
-/**
- * Plays a sound by its name.
- * @param {string} name - The name of the sound to play (must be a key in soundFiles).
- * @param {number} [volume=1.0] - The volume to play the sound at (0.0 to 1.0).
- */
-function playSound(name, volume = 1.0)
-{
-    console.log(name);
-    if (audioContext[name])
-    {
-        // Clone the audio node to allow for overlapping sounds
-        const sound = audioContext[name].cloneNode();
-        sound.volume = volume;
-        sound.play().catch(error => console.error(`Error playing sound: ${name}`, error));
-    }
-}
-
-/**
- * Starts playing the background music.
- * Handles browser autoplay restrictions by waiting for user interaction.
- */
-function playMusic()
-{
-    if (audioContext['Music'])
-        {
-        audioContext['Music'].volume = 0.65; // Set a reasonable volume for background music
-        const playPromise = audioContext['Music'].play();
-
-        if (playPromise !== undefined)
-        {
-            playPromise.catch(error => {
-                console.log("Music autoplay was prevented. Waiting for user interaction.");
-                // Add event listeners to play music on the first click or keydown
-                const startMusic = () => {
-                    audioContext['Music'].play();
-                    document.body.removeEventListener('click', startMusic);
-                    document.body.removeEventListener('keydown', startMusic);
-                };
-                document.body.addEventListener('click', startMusic, { once: true });
-                document.body.addEventListener('keydown', startMusic, { once: true });
-            });
-        }
-    }
-}
-
-//#endregion
-//-
-//--
-//--
-//-
 //#region Constants
 
 // Screen
@@ -188,6 +99,80 @@ var CameraBaseScale = 55;
 var CameraMaxScale = 8;
 
 var isPlayerRespawning = false;
+
+//#endregion
+//-
+//--
+//--
+//-
+//#region Audio
+
+const soundFiles =
+{
+    'Music': 'Music.mp3',
+    'Jump': 'Jump.mp3',
+    'PlatformDisappeared': 'PlatformDisappeared.mp3',
+    'Shrink': 'Shrink.mp3',
+    'GetBigger': 'GetBigger.mp3',
+    'GiverCollected': 'GiverCollected.mp3',
+    'Dash': 'Dash.mp3',
+    'PlatformBreak': 'PlatformBreak.mp3',
+    'JumpingPlatform': 'JumpingPlatform.mp3',
+    'BoxHold': 'BoxHold.mp3',
+    'GameVictory': 'GameVictory.mp3',
+    'Smash': 'Smash.mp3',
+    'Died': 'Died.mp3'
+};
+
+const audioContext = {};
+
+function loadSounds()
+{
+    for (const key in soundFiles)
+    {
+        audioContext[key] = new Audio(soundFiles[key]);
+        if (key === 'Music')
+        {
+            audioContext[key].loop = true;
+        }
+    }
+}
+
+function playSound(name, volume = 1.0)
+{
+    console.log(name);
+    if (audioContext[name])
+    {
+        const sound = audioContext[name].cloneNode();
+        sound.volume = volume;
+        sound.play().catch(error => console.error(`Error playing sound: ${name}`, error));
+    }
+}
+
+function playMusic()
+{
+    if (audioContext['Music'])
+        {
+        audioContext['Music'].volume = 0.65;
+        const playPromise = audioContext['Music'].play();
+
+        if (playPromise !== undefined)
+        {
+            playPromise.catch(error => {
+                console.log(
+                    "Music autoplay was prevented. Waiting for user interaction.");
+                    
+                const startMusic = () => {
+                    audioContext['Music'].play();
+                    document.body.removeEventListener('click', startMusic);
+                    document.body.removeEventListener('keydown', startMusic);
+                };
+                document.body.addEventListener('click', startMusic, { once: true });
+                document.body.addEventListener('keydown', startMusic, { once: true });
+            });
+        }
+    }
+}
 
 //#endregion
 //-
