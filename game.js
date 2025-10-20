@@ -101,6 +101,8 @@ var CameraMaxScale = 8;
 
 var isPlayerRespawning = false;
 
+var alreadyDead = false;
+
 //#endregion
 //-
 //--
@@ -539,7 +541,7 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
-    //player = new Player(vec2(1129, 2));
+    //player = new Player(vec2(664, 2));
     //ableToDash = true;
     //ableToSmash = true;
     //ableToClimb = true;
@@ -702,10 +704,19 @@ function createBlocks()
     new Ground(vec2(402.75, -10.75), vec2(23.5, 23.5));
     new Ground(vec2(430, -10), vec2(15, 15));
     new Ground(vec2(460, 0), vec2(25, 23.5));
-    new SBox(vec2(453, 12.5), vec2(1, 1));
-    new Box(vec2(469, 12.5), vec2(1, 1));
-    new Ground(vec2(460, 17.5), vec2(10, 10));
+    new SBox(vec2(450, 12.5), vec2(1, 1));
+    new Box(vec2(470, 12.5), vec2(1, 1));
     new Climbable(vec2(447, 0), vec2(1, 23.5));
+    // hollow box
+    new Ground(vec2(453, 20.5), vec2(1, 16));
+    new Ground(vec2(460, 28.5), vec2(15, 1));
+    new Ground(vec2(467, 20.5), vec2(1, 16));
+    new Ground(vec2(457, 12), vec2(1.5, 0.5));
+    new HalfBlock(vec2(459, 12.8), vec2(1.5, 0.5));
+    new Ground(vec2(461, 13.6), vec2(1.5, 0.5));
+    new HalfBlock(vec2(463, 14.4), vec2(1.5, 0.5));
+    new Ground(vec2(465, 13), vec2(0.5, 4));
+
 
     //platforms after
     new Ground(vec2(484, 6), vec2(3, 1));
@@ -730,7 +741,11 @@ function createBlocks()
     new Ground(vec2(650, 0), vec2(3, 1));
 
     //shrink or climb block
-    new Ground(vec2(672, 0), vec2(24, 1));
+    new Ground(vec2(664, 0), vec2(8, 1));
+    new HalfBlock(vec2(669.6, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(672, 0), vec2(1.5, 0.5));
+    new HalfBlock(vec2(674.4, 0), vec2(1.5, 0.5));
+    new Ground(vec2(680, 0), vec2(8, 1));
     new Climbable(vec2(667.5, 5.5), vec2(1, 8));
     new Ground(vec2(672, 5.5), vec2(8, 8));
     new SBox(vec2(665, 2), vec2(1, 1));
@@ -1414,7 +1429,11 @@ function gameUpdate()
 {
     if(checkGameEnd())
     {
-        triggerGameEnd();
+        if(!alreadyDead)
+        {
+            triggerGameEnd();
+        }
+        alreadyDead = true;
         return;
     }
 
