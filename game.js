@@ -806,8 +806,8 @@ function createBlocks()
     new HalfBlock(vec2(1153, 0), vec2(1.5, 0.5));
     new Ground(vec2(1170, 10.8), vec2(10, 20));
     new Ground(vec2(1165, -9.8), vec2(20, 20));
-    new Climbable(vec2(1155.25, 1.2), vec2(0.5, 2));
-    new BreakableBlock(vec2(1163, 1.2), vec2(0.5, 2));
+    new BreakableBlock(vec2(1155.25, 1.2), vec2(0.5, 2));
+    new Climbable(vec2(1163, 1.2), vec2(0.5, 2));
 }
 
 //#endregion
