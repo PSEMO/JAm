@@ -63,7 +63,8 @@ const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 var screenSize = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 // Object to store all game inputs globally
-const gameInputs = {
+const gameInputs =
+{
     move: vec2(0, 0),
     moveJustPressed: vec2(0, 0),
     dashPressed: false,
