@@ -541,7 +541,7 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
-    //player = new Player(vec2(664, 2));
+    //player = new Player(vec2(450, 13));
     //ableToDash = true;
     //ableToSmash = true;
     //ableToClimb = true;
@@ -558,6 +558,7 @@ function setCheckPoints()
         vec2(330, 1.5),
         vec2(470, 12.5),
         vec2(575, 12.5),
+        vec2(663, 1.5),
         vec2(680, 1.5),
         vec2(780, 1.5),
         vec2(840, 1.5),
@@ -713,9 +714,8 @@ function createBlocks()
     new Ground(vec2(467, 20.5), vec2(1, 16));
     new Ground(vec2(457, 12), vec2(1.5, 0.5));
     new HalfBlock(vec2(459, 12.8), vec2(1.5, 0.5));
-    new Ground(vec2(461, 13.6), vec2(1.5, 0.5));
-    new HalfBlock(vec2(463, 14.4), vec2(1.5, 0.5));
-    new Ground(vec2(465, 13), vec2(0.5, 4));
+    new HalfBlock(vec2(463, 13.6), vec2(1.5, 0.5));
+    new Ground(vec2(464.5, 13), vec2(0.5, 3));
 
 
     //platforms after
