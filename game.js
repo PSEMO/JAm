@@ -64,7 +64,7 @@ function playMusic()
 {
     if (audioContext['Music'])
         {
-        audioContext['Music'].volume = 0.75; // Set a reasonable volume for background music
+        audioContext['Music'].volume = 0.65; // Set a reasonable volume for background music
         const playPromise = audioContext['Music'].play();
 
         if (playPromise !== undefined)
@@ -104,6 +104,7 @@ const CAMERA_ZOOM_SMOOTHNESS = 0.05;
 const WALK_SPEED = 0.1;
 const JUMP_VELOCITY = 0.225;
 const JUMP_BOOST_VELOCITY = 0.1125;
+const JUMP_BUFFER_TIME = 0.1;
 const DASH_SPEED = 0.7;
 const DASH_DURATION = 0.2;
 const DASH_COOLDOWN = 1.5;
@@ -234,23 +235,36 @@ function jump(player)
             player.jumpCount -= 1;
         }
 
-        if (gameInputs.moveJustPressed.y > 0 && player.jumpCount > 0)
+        if (gameInputs.moveJustPressed.y > 0)
         {
-            playSound('Jump');
-            const sizeMult = player.size.y < 1? 0.65: 1;
-            const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
-            const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
-            if (player.velocity.y < currentJumpVelocity)
+            if (player.jumpCount > 0)
             {
-                player.velocity.y = currentJumpVelocity;
+                performJump();
             }
             else
             {
-                player.velocity.y += currentJumpBoost;
+                player.jumpBufferTimer.set(JUMP_BUFFER_TIME);
             }
-            player.jumpCount -= 1
         }
     }
+}
+
+function performJump()
+{
+    playSound('Jump');
+
+    const sizeMult = player.size.y < 1? 0.65: 1;
+    const currentJumpVelocity = JUMP_VELOCITY * sizeMult;
+    const currentJumpBoost = JUMP_BOOST_VELOCITY * sizeMult;
+    if (player.velocity.y < currentJumpVelocity)
+    {
+        player.velocity.y = currentJumpVelocity;
+    }
+    else
+    {
+        player.velocity.y += currentJumpBoost;
+    }
+    player.jumpCount -= 1
 }
 
 function dash(player)
@@ -457,6 +471,7 @@ function deathTracker()
 
 function die()
 {
+    console.log("sex");
     playSound('Died');
     player.pos = lastCheckpoint.copy();
     LJS.setCameraPos(lastCheckpoint.copy());
@@ -493,7 +508,8 @@ function checkCheckpoints()
     for (let i = lastCheckpointIndex + 1; i < checkpoints.length; i++)
     {
         const checkpoint = checkpoints[i];
-        if (player.pos.x > checkpoint.x) {
+        if (player.pos.x > checkpoint.x)
+        {
             lastCheckpoint = checkpoint;
             lastCheckpointIndex = i;
             if(i !== 0)
@@ -533,11 +549,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1129, 2));
-    //ableToDash = true;
-    //ableToSmash = true;
-    //ableToClimb = true;
-    //ableToHold = true;
-    //maxJumps = 99;
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -563,8 +579,10 @@ function setResettableObjectTemplates()
 {
     resettableObjectTemplates = [];
     LJS.engineObjects.forEach(obj => {
-        if (obj.isResettable) {
-            resettableObjectTemplates.push({
+        if (obj.isResettable)
+        {
+            resettableObjectTemplates.push(
+            {
                 constructor: obj.constructor,
                 pos: obj.initialPos.copy(),
                 size: obj.initialSize.copy()
@@ -1000,7 +1018,8 @@ class HalfBlock extends Barrier
     {
         if (this.breakTimer.elapsed())
         {
-            if (!this.isBroken) {
+            if (!this.isBroken)
+            {
                 playSound('PlatformDisappeared');
             }
             this.isBroken = true;
@@ -1059,6 +1078,7 @@ class Player extends LJS.EngineObject
         this.isHolding = false;
         this.dashtimer = new LJS.Timer;
         this.dashCooldownTimer = new LJS.Timer;
+        this.jumpBufferTimer = new LJS.Timer;
 
         this.tileInfo = playerIdle;
         this.animTimer = new LJS.Timer();
@@ -1098,6 +1118,13 @@ class Player extends LJS.EngineObject
     {
         this.jumpCount = maxJumps;
         this.canSlam = true;
+
+        if (this.jumpBufferTimer.active())
+        {
+            this.jumpBufferTimer.unset();
+            
+            performJump();
+        }
     }
     
     update()
@@ -1152,15 +1179,19 @@ class Player extends LJS.EngineObject
         super.update(); // This will call collideWithObject and populate the new collidingObjects set.
 
         // Check for new collisions that have started in this frame
-        for (const obj of this.collidingObjects) {
-            if (!this.lastCollidingObjects.has(obj)) {
+        for (const obj of this.collidingObjects)
+        {
+            if (!this.lastCollidingObjects.has(obj))
+            {
                 this.onCollisionStart(obj);
             }
         }
 
         // Check for collisions that have ended in this frame
-        for (const obj of this.lastCollidingObjects) {
-            if (!this.collidingObjects.has(obj)) {
+        for (const obj of this.lastCollidingObjects)
+        {
+            if (!this.collidingObjects.has(obj))
+            {
                 this.onCollisionEnd(obj);
             }
         }
@@ -1375,7 +1406,8 @@ function gameInit()
         UNLOCK_MESSAGE_DURATION);
 }
 
-function updateInputs() {
+function updateInputs()
+{
     gameInputs.move = LJS.keyDirection();
     gameInputs.moveJustPressed = keyJustDirection();
     gameInputs.dashPressed = LJS.keyWasPressed("ShiftLeft") ||
