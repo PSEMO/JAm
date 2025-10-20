@@ -149,9 +149,18 @@ const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 
 var screenSize = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
+// Object to store all game inputs globally
+const gameInputs = {
+    move: vec2(0, 0),
+    moveJustPressed: vec2(0, 0),
+    dashPressed: false,
+    slamPressed: false,
+};
+
 var player;
 let playerIdle, playerRun, playerJump, playerSlam, playerDash;
-let dashGiverSprite, doubleJumpGiverSprite, smashGiverSprite, climbGiverSprite, holdGiverSprite;
+let dashGiverSprite, doubleJumpGiverSprite, smashGiverSprite;
+let climbGiverSprite, holdGiverSprite;
 let boxSprite, sboxSprite, holdableSprite;
 
 var ableToDash = false;
@@ -193,16 +202,16 @@ function keyJustDirection(
     return vec2(k(right) - k(left), k(up) - k(down));
 }
 
-function walk(input, player)
+function walk(player)
 {
     if(player.isDashing == false && player.isHolding == false)
     {
         const currentWalkSpeed = WALK_SPEED * player.size.y;
-        if(input.x > 0)
+        if(gameInputs.move.x > 0)
         {
             player.velocity = vec2(currentWalkSpeed, player.velocity.y);
         }
-        else if(input.x < 0)
+        else if(gameInputs.move.x < 0)
         {
             player.velocity = vec2(-currentWalkSpeed, player.velocity.y);
         }
@@ -213,7 +222,7 @@ function walk(input, player)
     }
 }
 
-function jump(input, player)
+function jump(player)
 {
     if(player.isDashing == false && player.isHolding == false)
     {
@@ -225,7 +234,7 @@ function jump(input, player)
             player.jumpCount -= 1;
         }
 
-        if (input.y > 0 && player.jumpCount > 0)
+        if (gameInputs.moveJustPressed.y > 0 && player.jumpCount > 0)
         {
             playSound('Jump');
             const sizeMult = player.size.y < 1? 0.65: 1;
@@ -244,9 +253,9 @@ function jump(input, player)
     }
 }
 
-function dash(dashPressed, player)
+function dash(player)
 {
-    if(dashPressed &&
+    if(gameInputs.dashPressed &&
         !player.isDashing &&
         !player.dashCooldownTimer.active() &&
         ableToDash &&
@@ -258,8 +267,7 @@ function dash(dashPressed, player)
         player.dashtimer.set(DASH_DURATION);
         player.dashCooldownTimer.set(DASH_COOLDOWN);
         
-        let inputDirection = LJS.keyDirection();
-        let dashDirection = vec2(inputDirection.x, 0);
+        let dashDirection = vec2(gameInputs.move.x, 0);
         if (dashDirection.lengthSquared() === 0)
         {
             dashDirection = vec2(player.mirror ? -1 : 1, 0);
@@ -281,9 +289,9 @@ function dash(dashPressed, player)
     }
 }
 
-function groundSlam(slamPressed, player)
+function groundSlam(player)
 {
-    if(slamPressed && player.canSlam && !player.groundObject && ableToSmash)
+    if(gameInputs.slamPressed && player.canSlam && !player.groundObject && ableToSmash)
     {
         player.isSlamming = true;
         player.canSlam = false;
@@ -1367,6 +1375,15 @@ function gameInit()
         UNLOCK_MESSAGE_DURATION);
 }
 
+function updateInputs() {
+    gameInputs.move = LJS.keyDirection();
+    gameInputs.moveJustPressed = keyJustDirection();
+    gameInputs.dashPressed = LJS.keyWasPressed("ShiftLeft") ||
+        LJS.keyWasPressed("ShiftRight");
+    gameInputs.slamPressed = LJS.keyWasPressed('ArrowDown') ||
+        LJS.keyWasPressed('KeyS');
+}
+
 function gameUpdate()
 {
     if(checkGameEnd())
@@ -1375,25 +1392,25 @@ function gameUpdate()
         return;
     }
 
-    var moveInput = LJS.keyDirection();
-    var moveInputDown = keyJustDirection();
-    var dashKeyDown = LJS.keyWasPressed("ShiftLeft");
-    var downKeyDown = LJS.keyWasPressed('ArrowDown');
+    updateInputs();
     
     if(player.isHolding == true && 
-        (moveInputDown.x != 0 || moveInputDown.y != 0 || dashKeyDown || downKeyDown)
+        (gameInputs.moveJustPressed.x != 0 ||
+            gameInputs.moveJustPressed.y != 0 ||
+            gameInputs.dashPressed ||
+            gameInputs.slamPressed)
     )
     {
         player.isHolding = false;
     }
 
-    walk(moveInput, player);
+    walk(player);
     
-    jump(moveInputDown, player);
+    jump(player);
     
-    dash(dashKeyDown, player);
+    dash(player);
 
-    groundSlam(downKeyDown, player);
+    groundSlam(player);
 
     deathTracker();
 
