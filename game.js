@@ -47,6 +47,7 @@ function loadSounds()
  */
 function playSound(name, volume = 1.0)
 {
+    console.log(name);
     if (audioContext[name])
     {
         // Clone the audio node to allow for overlapping sounds
@@ -185,6 +186,8 @@ var resettableObjectTemplates = [];
 
 var CameraBaseScale = 55;
 var CameraMaxScale = 8;
+
+var isPlayerRespawning = false;
 
 //#endregion
 //-
@@ -471,7 +474,7 @@ function deathTracker()
 
 function die()
 {
-    console.log("sex");
+    isPlayerRespawning = true;
     playSound('Died');
     player.pos = lastCheckpoint.copy();
     LJS.setCameraPos(lastCheckpoint.copy());
@@ -489,6 +492,8 @@ function die()
     resettableObjectTemplates.forEach(template => {
         new template.constructor(template.pos, template.size);
     });
+
+    isPlayerRespawning = false;
 }
 
 function checkGameEnd()
@@ -549,11 +554,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1129, 2));
-    ableToDash = true;
-    ableToSmash = true;
-    ableToClimb = true;
-    ableToHold = true;
-    maxJumps = 99;
+    //ableToDash = true;
+    //ableToSmash = true;
+    //ableToClimb = true;
+    //ableToHold = true;
+    //maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -870,16 +875,19 @@ class BreakableBlock extends Disappears
 
     destroy()
     {
-        playSound('PlatformBreak');
-        new LJS.ParticleEmitter(
-            this.pos, 0, this.size, 0.1, 100, LJS.PI,
-            undefined,
-            new LJS.Color(0.2, 0.6, 0.8), new LJS.Color(0.5, 0.8, 1),
-            new LJS.Color(0.2, 0.6, 0.8, 0), new LJS.Color(0.5, 0.8, 1, 0),
-            .5, .5, 0, .1, .05,
-            .9, 1, .5, LJS.PI, .1,
-            .5, false, true
-        );
+        if (!isPlayerRespawning)
+        {
+            playSound('PlatformBreak');
+            new LJS.ParticleEmitter(
+                this.pos, 0, this.size, 0.1, 100, LJS.PI,
+                undefined,
+                new LJS.Color(0.2, 0.6, 0.8), new LJS.Color(0.5, 0.8, 1),
+                new LJS.Color(0.2, 0.6, 0.8, 0), new LJS.Color(0.5, 0.8, 1, 0),
+                .5, .5, 0, .1, .05,
+                .9, 1, .5, LJS.PI, .1,
+                .5, false, true
+            );
+        }
         super.destroy();
     }
 }
