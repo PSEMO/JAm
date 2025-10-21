@@ -53,6 +53,21 @@ const JUMPER_POSITION_ADJUST_ON_BOUNCE = 1;
 const DEATH_Y_LIMIT = -23;
 const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 
+const zoomInPositions = [
+    LJS.vec2(2, -6.5),
+    LJS.vec2(7.5, -3.5),
+    LJS.vec2(-6.5, 3),
+    LJS.vec2(8.5, -8)
+];
+
+const IMAGE_STAY_DURATION = 0.5;
+const FADE_DURATION = 3;
+const ZOOM_LEVEL_IN = 48;
+const ZOOM_LEVEL_OUT = 32;
+
+const STATE_FADING_IN = 0;
+const STATE_STAYING = 1;
+const STATE_FADING_OUT = 2;
 //#endregion
 //-
 //--
@@ -104,6 +119,12 @@ var alreadyDead = false;
 
 var isShowingStory = true;
 var gameSetupNeeded = true;
+
+let storyImages = [];
+let currentImageIndex = 0;
+let storyImageObject;
+let stateTimer;
+let currentState = STATE_FADING_IN;
 
 //#endregion
 //-
@@ -343,6 +364,17 @@ function changePlayerSize(toBigger, obj)
         obj.destroy()
     }
 
+    if(player.size.x > 0.5 || player.size.y > 1)
+    {
+        player.size.x = 0.5;
+        player.size.y = 1;
+    }
+    if(player.size.x < 0.25 || player.size.y < 0.5)
+    {
+        player.size.x = 0.25;
+        player.size.y = 0.5;
+    }
+
     player.drawSize = vec2(player.size.x * 2,  player.size.y);
 }
 
@@ -552,11 +584,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1130, 1));
-    //ableToDash = true;
-    //ableToSmash = true;
-    //ableToClimb = true;
-    //ableToHold = true;
-    //maxJumps = 99;
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -614,6 +646,7 @@ function createBlocks()
     new Ground(vec2(0, 0), vec2(19, 1));
     
     // Staircase
+    new Ground(vec2(6, 1), vec2(1, 1));
     new Ground(vec2(6, 1), vec2(1, 1));
     new Ground(vec2(7, 2), vec2(1, 1));
     new Ground(vec2(8, 3), vec2(1, 1));
@@ -1423,27 +1456,6 @@ class Cat extends LJS.EngineObject
 //--
 //-
 //#region Engine funcs
-
-let storyImages = [];
-const zoomInPositions = [
-    LJS.vec2(2, -6.5),
-    LJS.vec2(7.5, -3.5),
-    LJS.vec2(-6.5, 3),
-    LJS.vec2(8.5, -8)
-];
-let currentImageIndex = 0;
-let storyImageObject;
-let stateTimer;
-
-const IMAGE_STAY_DURATION = 0.5;
-const FADE_DURATION = 3;
-const ZOOM_LEVEL_IN = 48;
-const ZOOM_LEVEL_OUT = 32;
-
-const STATE_FADING_IN = 0;
-const STATE_STAYING = 1;
-const STATE_FADING_OUT = 2;
-let currentState = STATE_FADING_IN;
 
 function gameInit()
 {
