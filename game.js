@@ -616,17 +616,17 @@ function createBlocks()
     new Ground(vec2(9, 3), vec2(1, 1));
 
     // 3 wide blocks with space between them
-    new HalfBlock(vec2(13, 4), vec2(3, 1));
-    new HalfBlock(vec2(18, 4), vec2(3, 1));
-    new HalfBlock(vec2(23, 4), vec2(3, 1));
+    new Ground(vec2(13, 4), vec2(3, 1));
+    new Ground(vec2(18, 4), vec2(3, 1));
+    new Ground(vec2(23, 4), vec2(3, 1));
 
     // Wide platforms going upwards and downwards
     new Ground(vec2(28, 5), vec2(3, 1));
     new Ground(vec2(33, 6), vec2(3, 1));
     new Ground(vec2(38, 7), vec2(3, 1));
-    new Ground(vec2(43, 6), vec2(3, 1));
-    new Ground(vec2(48, 5), vec2(3, 1));
-    new Ground(vec2(53, 4), vec2(3, 1));
+    new HalfBlock(vec2(43, 6), vec2(3, 1));
+    new HalfBlock(vec2(48, 5), vec2(3, 1));
+    new HalfBlock(vec2(53, 4), vec2(3, 1));
 
     // A long platform and hollowed out box
     new Ground(vec2(73, 4), vec2(31, 1));
@@ -653,14 +653,14 @@ function createBlocks()
     // Wide platforms going upwards and downwards
     new Ground(vec2(140, 5), vec2(3, 1));
     new Ground(vec2(145, 6), vec2(3, 1));
-    new Ground(vec2(150, 7), vec2(3, 1));
-    new Ground(vec2(155, 6), vec2(3, 1));
-    new Ground(vec2(160, 5), vec2(3, 1));
-    new Ground(vec2(165, 4), vec2(3, 1));
-    new Ground(vec2(170, 3), vec2(3, 1));
-    new Ground(vec2(175, 2), vec2(3, 1));
-    new Ground(vec2(180, 1), vec2(3, 1));
-    new Ground(vec2(185, 0), vec2(3, 1));
+    new HalfBlock(vec2(150, 7), vec2(3, 1));
+    new HalfBlock(vec2(155, 6), vec2(3, 1));
+    new HalfBlock(vec2(160, 5), vec2(3, 1));
+    new HalfBlock(vec2(165, 4), vec2(3, 1));
+    new HalfBlock(vec2(170, 3), vec2(3, 1));
+    new HalfBlock(vec2(175, 2), vec2(3, 1));
+    new HalfBlock(vec2(180, 1), vec2(3, 1));
+    new HalfBlock(vec2(185, 0), vec2(3, 1));
 
     // 3 wide blocks with space between them
     new Ground(vec2(192, 0), vec2(3, 1));
