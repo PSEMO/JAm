@@ -103,6 +103,9 @@ var isPlayerRespawning = false;
 
 var alreadyDead = false;
 
+var isShowingStory = true;
+var gameSetupNeeded = true; // Flag to trigger one-time game setup
+
 //#endregion
 //-
 //--
@@ -811,6 +814,22 @@ function createBlocks()
     new Climbable(vec2(1163, 1.2), vec2(0.5, 2));
 }
 
+// This new function contains all the setup logic for the actual game.
+// It will be called once after the story sequence ends.
+function setupGameWorld()
+{
+    LJS.setGravity(vec2(0, GRAVITY_Y));
+    LJS.setCameraScale(CameraBaseScale);
+
+    setTiles();
+    setGiverTiles();
+
+    createLevel();
+
+    createMessage("\"W\" \"A\" \"D\" or Arrow Keys to Move", UNLOCK_MESSAGE_DURATION);
+}
+
+
 //#endregion
 //-
 //--
@@ -1394,25 +1413,54 @@ class Player extends LJS.EngineObject
 //-
 //#region Engine funcs
 
+let storyImages = [];
+const zoomInPositions = [
+    LJS.vec2(2, -6.5),
+    LJS.vec2(7.5, -3.5),
+    LJS.vec2(-6.5, 3),
+    LJS.vec2(8.5, -8)
+];
+let currentImageIndex = 0;
+let storyImageObject;
+let stateTimer;
+
+const IMAGE_STAY_DURATION = 0.5;
+const FADE_DURATION = 3;
+const ZOOM_LEVEL_IN = 48;
+const ZOOM_LEVEL_OUT = 32;
+
+const STATE_FADING_IN = 0;
+const STATE_STAYING = 1;
+const STATE_FADING_OUT = 2;
+let currentState = STATE_FADING_IN;
+
 function gameInit()
 {
+    // Basic setup
     LJS.setCanvasFixedSize(screenSize);
     LJS.setCanvasClearColor(BACKGROUND_COLOR);
-
-    LJS.setGravity(vec2(0, GRAVITY_Y));
-
-    LJS.setCameraScale(CameraBaseScale);
-
     loadSounds();
     playMusic();
     
-    setTiles();
-    setGiverTiles();
+    // Story-specific setup
+    storyImages = [
+        LJS.tile(0, LJS.vec2(1280, 720), 10),
+        LJS.tile(0, LJS.vec2(1280, 720), 11),
+        LJS.tile(0, LJS.vec2(1280, 720), 12),
+        LJS.tile(0, LJS.vec2(1280, 720), 13)
+    ];
 
-    createLevel();
+    storyImageObject = new LJS.EngineObject(LJS.vec2(0, 0),
+        LJS.vec2(38.4, 21.6));
+    storyImageObject.renderOrder = -1;
+    storyImageObject.tileInfo = storyImages[currentImageIndex];
+    storyImageObject.color = new LJS.Color(1, 1, 1, 0);
 
-    createMessage("\"W\" \"A\" \"D\" or Arrow Keys to Move",
-        UNLOCK_MESSAGE_DURATION);
+    LJS.setCameraScale(ZOOM_LEVEL_OUT);
+    LJS.setCameraPos(LJS.vec2(0, 0));
+
+    stateTimer = new LJS.Timer();
+    stateTimer.set(FADE_DURATION);
 }
 
 function updateInputs()
@@ -1427,43 +1475,111 @@ function updateInputs()
 
 function gameUpdate()
 {
-    if(checkGameEnd())
+    if (isShowingStory)
     {
-        if(!alreadyDead)
+        const percent = stateTimer.getPercent();
+
+        switch (currentState)
         {
-            triggerGameEnd();
+            case STATE_FADING_IN:
+                storyImageObject.color.a = LJS.lerp(0, 1, percent);
+                LJS.setCameraScale(
+                    LJS.lerp(ZOOM_LEVEL_OUT, ZOOM_LEVEL_IN, percent));
+                LJS.setCameraPos(
+                    LJS.vec2(
+                        LJS.lerp(0,
+                            zoomInPositions[currentImageIndex].x, percent),
+                        LJS.lerp(0,
+                            zoomInPositions[currentImageIndex].y, percent)
+                    )
+                );
+
+                if (stateTimer.elapsed())
+                {
+                    currentState = STATE_STAYING;
+                    stateTimer.set(IMAGE_STAY_DURATION);
+                }
+                break;
+
+            case STATE_STAYING:
+                if (stateTimer.elapsed())
+                {
+                    currentState = STATE_FADING_OUT;
+                    stateTimer.set(FADE_DURATION);
+                }
+                break;
+
+            case STATE_FADING_OUT:
+                storyImageObject.color.a = LJS.lerp(1, 0, percent);
+
+                if (stateTimer.elapsed())
+                {
+                    if (currentImageIndex >= storyImages.length - 1)
+                    {
+                        // Last image has faded out, end the story
+                        isShowingStory = false;
+                        gameSetupNeeded = true;
+                        storyImageObject.destroy();
+                    } else {
+                        // Not the last image, go to the next one
+                        currentImageIndex++;
+                        storyImageObject.tileInfo =
+                            storyImages[currentImageIndex];
+                        LJS.setCameraPos(LJS.vec2(0, 0));
+                        LJS.setCameraScale(ZOOM_LEVEL_OUT);
+                        currentState = STATE_FADING_IN;
+                        stateTimer.set(FADE_DURATION);
+                    }
+                }
+                break;
         }
-        alreadyDead = true;
-        return;
     }
-
-    updateInputs();
-    
-    if(player.isHolding == true && 
-        (gameInputs.moveJustPressed.x != 0 ||
-            gameInputs.moveJustPressed.y != 0 ||
-            gameInputs.dashPressed ||
-            gameInputs.slamPressed)
-    )
+    else if (gameSetupNeeded)
     {
-        player.isHolding = false;
+        // This block runs for exactly one frame after the story ends
+        setupGameWorld();
+        gameSetupNeeded = false;
     }
+    else // This is the main game loop
+    {
+        if(checkGameEnd())
+        {
+            if(!alreadyDead)
+            {
+                triggerGameEnd();
+            }
+            alreadyDead = true;
+            return;
+        }
 
-    walk(player);
-    
-    jump(player);
-    
-    dash(player);
+        updateInputs();
+        
+        if(player.isHolding == true && 
+            (gameInputs.moveJustPressed.x != 0 ||
+                gameInputs.moveJustPressed.y != 0 ||
+                gameInputs.dashPressed ||
+                gameInputs.slamPressed)
+        )
+        {
+            player.isHolding = false;
+        }
 
-    groundSlam(player);
+        walk(player);
+        
+        jump(player);
+        
+        dash(player);
 
-    deathTracker();
+        groundSlam(player);
 
-    checkCheckpoints();
+        deathTracker();
 
-    camControl();
+        checkCheckpoints();
 
-    moveBackground();
+        camControl();
+
+        moveBackground();
+    }
 }
 
 function gameUpdatePost()
@@ -1476,8 +1592,12 @@ function gameRender()
 
 function gameRenderPost()
 {
-    drawDashBar();
-    displayMessage();
+    // Only draw game UI if the story is over
+    if (!gameSetupNeeded)
+    {
+        drawDashBar();
+        displayMessage();
+    }
 }
 
 //#endregion
@@ -1503,7 +1623,11 @@ LJS.engineInit(
         'HoldGiver.png',
         'Box.png',
         'SBox.png',
-        'Holdable.png'
+        'Holdable.png',
+        'Story1.png',
+        'Story2.png',
+        'Story3.png',
+        'Story4.png'
     ]
 );
 
