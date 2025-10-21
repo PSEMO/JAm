@@ -54,10 +54,10 @@ const DEATH_Y_LIMIT = -23;
 const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 
 const zoomInPositions = [
-    LJS.vec2(2, -6.5),
-    LJS.vec2(7.5, -3.5),
-    LJS.vec2(-6.5, 3),
-    LJS.vec2(8.5, -8)
+    LJS.vec2(2, -3),
+    LJS.vec2(5, -3),
+    LJS.vec2(-5.5, 3),
+    LJS.vec2(5.5, -3)
 ];
 
 const IMAGE_STAY_DURATION = 0.5;
