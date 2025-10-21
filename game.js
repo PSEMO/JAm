@@ -62,7 +62,6 @@ const BACKGROUND_COLOR = rgb(0.66, 0.79, 0.81);
 
 var screenSize = vec2(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-// Object to store all game inputs globally
 const gameInputs =
 {
     move: vec2(0, 0),
@@ -231,7 +230,7 @@ function jump(player)
 {
     if(player.isDashing == false && player.isHolding == false)
     {
-        //disables falling and jumping the normal ammount
+        //disables falling and jumping the normal ammount when you fall
         if(!player.groundObject &&
             player.jumpCount == maxJumps &&
             !touchingClimbable)
