@@ -584,11 +584,11 @@ function createLevel()
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
     //player = new Player(vec2(1130, 1));
-    ableToDash = true;
-    ableToSmash = true;
-    ableToClimb = true;
-    ableToHold = true;
-    maxJumps = 99;
+    //ableToDash = true;
+    //ableToSmash = true;
+    //ableToClimb = true;
+    //ableToHold = true;
+    //maxJumps = 99;
 }
 
 function setCheckPoints()
