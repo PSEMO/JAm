@@ -551,12 +551,12 @@ function createLevel()
 
     //TODO CHANGE BEFORE RELEASE
     player = new Player(vec2(0, 1.5));
-    //player = new Player(vec2(450, 13));
-    //ableToDash = true;
-    //ableToSmash = true;
-    //ableToClimb = true;
-    //ableToHold = true;
-    //maxJumps = 99;
+    player = new Player(vec2(1130, 1));
+    ableToDash = true;
+    ableToSmash = true;
+    ableToClimb = true;
+    ableToHold = true;
+    maxJumps = 99;
 }
 
 function setCheckPoints()
@@ -819,6 +819,8 @@ function createBlocks()
     new Ground(vec2(1165, -9.8), vec2(20, 20));
     new BreakableBlock(vec2(1155.25, 1.2), vec2(0.5, 2));
     new Climbable(vec2(1163, 1.2), vec2(0.5, 2));
+
+    new Cat(vec2(1174.5, 0.5));
 }
 
 function setupGameWorld()
@@ -1403,6 +1405,18 @@ class Player extends LJS.EngineObject
     }
 }
 
+class Cat extends LJS.EngineObject
+{
+    constructor(pos, size = vec2(0.5, 0.5))
+    {
+        const tileInfo = new LJS.TileInfo(vec2(0,0), vec2(25, 25), 14);
+        super(pos, size, tileInfo);
+        this.gravityScale = 0;
+        this.mass = 0;
+        this.renderOrder = 1;
+    }
+}
+
 //#endregion
 //-
 //--
@@ -1620,9 +1634,9 @@ LJS.engineInit(
         'Story1.png',
         'Story2.png',
         'Story3.png',
-        'Story4.png'
+        'Story4.png',
+        'cat.png'
     ]
 );
 
 //#endregion
-//
