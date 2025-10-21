@@ -104,7 +104,7 @@ var isPlayerRespawning = false;
 var alreadyDead = false;
 
 var isShowingStory = true;
-var gameSetupNeeded = true; // Flag to trigger one-time game setup
+var gameSetupNeeded = true;
 
 //#endregion
 //-
@@ -178,6 +178,15 @@ function playMusic()
                 document.body.addEventListener('keydown', startMusic, { once: true });
             });
         }
+    }
+}
+
+function stopMusic()
+{
+    if (audioContext['Music'])
+    {
+        audioContext['Music'].pause();
+        audioContext['Music'].currentTime = 0;
     }
 }
 
@@ -368,15 +377,12 @@ function setTiles()
 
 function setGiverTiles()
 {
-    // Texture indices are based on the order in engineInit
     dashGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 2);
     doubleJumpGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 3);
     smashGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 4);
     climbGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 5);
     holdGiverSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 6);
 
-    // NOTE: You will need to add your icon files to the engineInit call at the bottom.
-    // Assuming 'Box.png' is texture index 7 and 'SBox.png' is 8
     boxSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 7);
     sboxSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 8);
     holdableSprite = new LJS.TileInfo(vec2(0, 0), vec2(25, 25), 9);
@@ -496,6 +502,7 @@ function checkGameEnd()
 function triggerGameEnd()
 {
     playSound('GameVictory');
+    stopMusic();
     createMessage("You Won!", YOU_WON_MESSAGE_DURATION);
     displayMessage();
 }
@@ -815,8 +822,6 @@ function createBlocks()
     new Climbable(vec2(1163, 1.2), vec2(0.5, 2));
 }
 
-// This new function contains all the setup logic for the actual game.
-// It will be called once after the story sequence ends.
 function setupGameWorld()
 {
     LJS.setGravity(vec2(0, GRAVITY_Y));
@@ -844,7 +849,7 @@ class Background extends LJS.EngineObject
     {
         const tileInfo = new LJS.TileInfo(vec2(0,-10), vec2(750, 750), 1);
         super(pos, vec2(45, 45), tileInfo);
-        this.renderOrder = -1; // Render behind all other objects
+        this.renderOrder = -1;
     }
 }
 
@@ -874,8 +879,6 @@ class Block extends Barrier
 
 class Disappears extends Barrier
 {
-    //size is here to prevent null.copy()
-    //for other classes it is set later at the engine level
     constructor(pos, size = vec2(1, 1))
     {
         super(pos, size);
@@ -1213,7 +1216,6 @@ class Player extends LJS.EngineObject
             }
         }
 
-        // Check for collisions that have ended in this frame
         for (const obj of this.lastCollidingObjects)
         {
             if (!this.collidingObjects.has(obj))
@@ -1432,13 +1434,11 @@ let currentState = STATE_FADING_IN;
 
 function gameInit()
 {
-    // Basic setup
     LJS.setCanvasFixedSize(screenSize);
     LJS.setCanvasClearColor(BACKGROUND_COLOR);
     loadSounds();
     playMusic();
     
-    // Story-specific setup
     storyImages = [
         LJS.tile(0, LJS.vec2(1280, 720), 10),
         LJS.tile(0, LJS.vec2(1280, 720), 11),
@@ -1512,12 +1512,12 @@ function gameUpdate()
                 {
                     if (currentImageIndex >= storyImages.length - 1)
                     {
-                        // Last image has faded out, end the story
                         isShowingStory = false;
                         gameSetupNeeded = true;
                         storyImageObject.destroy();
-                    } else {
-                        // Not the last image, go to the next one
+                    }
+                    else
+                    {
                         currentImageIndex++;
                         storyImageObject.tileInfo =
                             storyImages[currentImageIndex];
@@ -1532,11 +1532,10 @@ function gameUpdate()
     }
     else if (gameSetupNeeded)
     {
-        // This block runs for exactly one frame after the story ends
         setupGameWorld();
         gameSetupNeeded = false;
     }
-    else // This is the main game loop
+    else
     {
         if(checkGameEnd())
         {
@@ -1588,7 +1587,6 @@ function gameRender()
 
 function gameRenderPost()
 {
-    // Only draw game UI if the story is over
     if (!gameSetupNeeded)
     {
         drawDashBar();
