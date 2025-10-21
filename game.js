@@ -151,7 +151,8 @@ function playSound(name, volume = 1.0)
     {
         const sound = audioContext[name].cloneNode();
         sound.volume = volume;
-        sound.play().catch(error => console.error(`Error playing sound: ${name}`, error));
+        sound.play().catch(error =>
+            console.error(`Error playing sound: ${name}`, error));
     }
 }
 
@@ -1160,8 +1161,6 @@ class Player extends LJS.EngineObject
         //messy but works
         touchingClimbable = false;
         
-        // Prepare for the new frame's collision checks by moving the current
-        // colliding objects to the "last" set, then clearing the current set.
         this.lastCollidingObjects = this.collidingObjects;
         this.collidingObjects = new Set();
 
@@ -1204,9 +1203,8 @@ class Player extends LJS.EngineObject
             this.mirror = this.velocity.x < 0;
         }
 
-        super.update(); // This will call collideWithObject and populate the new collidingObjects set.
-
-        // Check for new collisions that have started in this frame
+        super.update();
+        
         for (const obj of this.collidingObjects)
         {
             if (!this.lastCollidingObjects.has(obj))
@@ -1227,7 +1225,6 @@ class Player extends LJS.EngineObject
 
     collideWithObject(obj)
     {
-        // Add the object to the set of currently colliding objects for this frame.
         this.collidingObjects.add(obj);
         
         if (typeof obj.tag != "undefined")
@@ -1344,12 +1341,11 @@ class Player extends LJS.EngineObject
                 {
                     if (this.isHolding)
                     {
-                        const HOLD_LERP_SPEED = 0.2; // How fast player moves to the holdable
-                        this.gravityScale = 0; // Disable gravity
-                        this.velocity = vec2(0, 0); // Stop movement from other sources
+                        const HOLD_LERP_SPEED = 0.2;
+                        this.gravityScale = 0;
+                        this.velocity = vec2(0, 0);
                         this.pos = this.pos.lerp(obj.pos, HOLD_LERP_SPEED);
         
-                        // Once close enough, snap to position and allow a jump
                         if (this.pos.distance(obj.pos) < 0.1)
                         {
                             this.pos = obj.pos.copy();
