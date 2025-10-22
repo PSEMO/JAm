@@ -1269,7 +1269,8 @@ class Player extends LJS.EngineObject
 
             if(this.isSlamming && 
                 (obj.tag == "ground" || obj.tag == "box" || obj.tag == "jumper" || 
-                obj.tag == "breaks" || obj.tag == "breakableBlock" || obj.tag == "climbable"))
+                obj.tag == "breaks" || obj.tag == "breakableBlock" ||
+                obj.tag == "climbable"))
             {
                 playSound('Smash');
                 slammed = true;
