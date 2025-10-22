@@ -1443,7 +1443,7 @@ class Cat extends LJS.EngineObject
 {
     constructor(pos, size = vec2(0.5, 0.5))
     {
-        const tileInfo = new LJS.TileInfo(vec2(0,0), vec2(25, 25), 14);
+        const tileInfo = new LJS.TileInfo(vec2(0,0), vec2(21, 20), 14);
         super(pos, size, tileInfo);
         this.gravityScale = 0;
         this.mass = 0;
