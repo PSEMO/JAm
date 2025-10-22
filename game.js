@@ -760,7 +760,6 @@ function createBlocks()
     new HalfBlock(vec2(463, 13.6), vec2(1.5, 0.5));
     new Ground(vec2(464.5, 13), vec2(0.5, 3));
 
-
     //platforms after
     new Ground(vec2(484, 6), vec2(3, 1));
     new Ground(vec2(497, 4), vec2(3, 1));
