@@ -462,7 +462,7 @@ function displayMessage()
     {
         LJS.drawTextScreen(
             messageToDisplayAtUnlock,
-            vec2(screenSize.x / 2, screenSize.y / 2),
+            vec2(screenSize.x / 2, screenSize.y / 2 - 150),
             40,
             rgb(1, 1, 0.5),
             3,
